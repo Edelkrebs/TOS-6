@@ -384,7 +384,7 @@ struct stivale2_header stivale_hdr = {
     .flags = 0,
     // This header structure is the root of the linked list of header tags and
     // points to the first one (and in our case, only).
-    .tags = (uintptr_t)&framebuffer_hdr_tag
+    .tags = 0
 };
 
 // that we want FROM the bootloader (structure tags).
@@ -410,6 +410,7 @@ void *stivale2_get_tag(struct stivale2_struct *stivale2_struct, uint64_t id) {
 }
 
 void stivale2Init(struct stivale2_struct* stivale2_struct){
+#ifdef __FRAMEBUFFER_PRESENT
 	struct stivale2_struct_tag_framebuffer* fb = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
 	if(fb == NULL){
 		while(1)asm("int $3");
@@ -418,5 +419,6 @@ void stivale2Init(struct stivale2_struct* stivale2_struct){
 	fb_width = fb->framebuffer_width;
 	fb_height = fb->framebuffer_height;
 	fb_bpp = fb->framebuffer_bpp; 
-
+	fb_pitch = fb->framebuffer_pitch;
+#endif
 }
