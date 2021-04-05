@@ -39,8 +39,7 @@ void kputch(char c, uint32_t r, uint32_t col){
 		return;
 	}
 	*(coords_to_address(r, col)) = generate_entry(c, text_color_attrib);
-	column++;
-	
+	column++;	
 }
 
 void printhex(uint64_t number){
