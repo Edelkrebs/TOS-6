@@ -46,7 +46,7 @@ image: all
 	echfs-utils -g -p0 image.hdd quick-format 512
 	 
 	echfs-utils -g -p0 image.hdd import limine.cfg limine.cfg
-	echfs-utils -g -p0 image.hdd import myos.elf myos.elf
+	echfs-utils -g -p0 image.hdd import kernel.elf kernel.elf
 	  
 	./limine/limine-install image.hdd
 	echfs-utils -g -p0 image.hdd import limine/limine.sys limine.sys
