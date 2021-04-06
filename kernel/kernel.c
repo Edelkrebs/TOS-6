@@ -46,10 +46,10 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	
 	stivale2Init(stivale2_struct);
 
-	initGDT(&main_gdt, main_gdt_entrys, 3);
-	loadGDT(&main_gdt);
+	printhex(&main_gdt);
 
-	printhex(main_gdt.size);
+	initGDT(&main_gdt, &main_gdt_entrys, 3);
+	loadGDT(&main_gdt);
 
 	while(1) asm("hlt");
 

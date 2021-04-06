@@ -14,8 +14,8 @@ typedef struct{
 } __attribute__((packed))  GDTentry;
 
 typedef struct{
-	void* start;
 	uint16_t size;
+	void* start;
 } __attribute__((packed)) GDT;
 
 void initGDT(GDT* gdt, GDTentry* entrys, uint16_t entrys_count);

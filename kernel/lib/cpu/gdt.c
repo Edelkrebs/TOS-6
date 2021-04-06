@@ -22,6 +22,13 @@ __attribute__((naked, noinline)) static void switch_cs(uint64_t sel) {
 }
 
 void loadGDT(GDT* gdt){
-	__asm__ volatile ("lgdt %0" :: "m" (*gdt));
+	asm volatile ("lgdt %0" :: "m" (*gdt));
 	switch_cs(0x8);
+	asm ("mov $0x10, %%ax\n\t"
+		 "mov %%ax, %%es\n\t" 
+		 "mov %%ax, %%fs\n\t" 
+		 "mov %%ax, %%gs\n\t" 
+		 "mov %%ax, %%ds\n\t" 
+		 "mov %%ax, %%ss\n\t" 
+		 ::: "ax");
 }
