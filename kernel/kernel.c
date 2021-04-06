@@ -46,8 +46,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	
 	stivale2Init(stivale2_struct);
 
-	printhex(&main_gdt);
-
 	initGDT(&main_gdt, &main_gdt_entrys, 3);
 	loadGDT(&main_gdt);
 
