@@ -32,7 +32,7 @@ void init_bitmap(struct stivale2_struct* stivale2_struct){
 	memmap = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID);
 	kernel_size = _kernel_end - _kernel_start;
 
-	bitmap_size = (memmap->memmap[memmap->entries - 1].base + memmap->memmap[memmap->entries - 1].length) / 0x1000 / 8;
+	bitmap_size = round_up((memmap->memmap[memmap->entries - 1].base + memmap->memmap[memmap->entries - 1].length) / 0x1000 / 8, PMM_PAGE_SIZE);
 
 	block_limit = bitmap_size * 8;
 	bitmap = (uint8_t*) 0x0;
@@ -83,4 +83,34 @@ void populate_bitmap(){
 		bitmap_setb(i + round_down((uint64_t) bitmap, PMM_PAGE_SIZE) / PMM_PAGE_SIZE);
 	}
 
+}
+
+void* pmm_alloc(uint64_t pages){
+	assert(pages == 0, "Number of pages to allocate can't be 0!");
+	uint64_t i;
+	uint8_t success;
+	for(i = 0; i < bitmap_size * 8; i++){
+		if(bitmap_getb(i) == 0){
+			for(int j = 1; j <= pages; j++){
+				if(bitmap_getb(i + j) != 0){
+					if(j == pages){
+						for(int x = 0; x < j; x++){
+							bitmap_setb(i + x);
+						}
+						return (void*)(i * PMM_PAGE_SIZE); 
+					}
+				}else{
+					continue;		
+				}
+			}
+		}
+	}
+	panic("Couldn't allocate memory!");
+	return (void*)0;
+}
+
+void pmm_free(void* paddr, uint64_t pages){
+	for(int i = 0; i < pages; i++){
+		bitmap_clearb((uint64_t) paddr / PMM_PAGE_SIZE + i);
+	}
 }
