@@ -42,7 +42,7 @@ void kputch(char c, uint32_t r, uint32_t col){
 	column++;	
 }
 
-void printhex(uint64_t number){
+void printhexln(uint64_t number){
 	char* str =  "0x0000000000000000\0";
 	uint64_t numbercpy = number;
 	for(int i = 17; i > 1; i--){
@@ -54,6 +54,19 @@ void printhex(uint64_t number){
 	}
 	printk(str, row, column);
 	kputch('\n', row, column);
+}
+
+void printhex(uint64_t number){
+	char* str =  "0x0000000000000000\0";
+	uint64_t numbercpy = number;
+	for(int i = 17; i > 1; i--){
+		number = numbercpy;
+		numbercpy = numbercpy >> 4;
+		number &= 0xF;
+		if(number > 9) str[i] = number + 'A' - 10;
+		else str[i] = number + '0';
+	}
+	printk(str, row, column);
 }
 
 void putch(char c){

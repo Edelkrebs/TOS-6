@@ -49,7 +49,7 @@ void init_bitmap(struct stivale2_struct* stivale2_struct){
 	}
 
 	print("Bitmap: ");
-	printhex((uint64_t) bitmap);
+	printhexln((uint64_t) bitmap);
 	assert((uint64_t) bitmap == 0, "Couldn't allocate bitmap");
 	
 }
@@ -64,11 +64,23 @@ void populate_bitmap(){
 	for(uint64_t memmap_entry = 0; memmap_entry < memmap->entries; memmap_entry++){
 		if(memmap->memmap[memmap_entry].type != STIVALE2_MMAP_USABLE){
 			for(uint64_t i = 0; i < round_up(memmap->memmap[memmap_entry].length, PMM_PAGE_SIZE) / PMM_PAGE_SIZE; i++){
-				bitmap_setb(i + round_down(memmap->memmap[memmap_entry].base, PMM_PAGE_SIZE) / PMM_PAGE_SIZE);	
+				bitmap_setb(i + round_down(memmap->memmap[memmap_entry].base, PMM_PAGE_SIZE) / PMM_PAGE_SIZE);
 			}
 		}
-		if(memmap_entry != memmap->entries - 1){
-			if(memmap->memmap[memmap_entry].length + memmap->memmap[memmap_entry].base != )
+
+		if(memmap_entry != memmap->entries - 1){ // Check that so we dont calculate the distance from the last index to the next which is ofc a shit number
+			uint64_t diff = difference(memmap->memmap[memmap_entry].base, memmap->memmap[memmap_entry + 1].base); 
+			if(diff > memmap->memmap[memmap_entry].length){ //If there are holes in the memory map, fill them	
+				uint64_t i = 0;
+				for(i = 0; i < round_up(diff - memmap->memmap[memmap_entry].length, PMM_PAGE_SIZE) / PMM_PAGE_SIZE; i++){
+					bitmap_setb(i + round_down(memmap->memmap[memmap_entry].length + memmap->memmap[memmap_entry].base, PMM_PAGE_SIZE) / PMM_PAGE_SIZE);
+				}
+			}
 		}
 	}
+
+	for(int i = 0; i < round_up(bitmap_size, PMM_PAGE_SIZE) / PMM_PAGE_SIZE; i++){
+		bitmap_setb(i + round_down((uint64_t) bitmap, PMM_PAGE_SIZE) / PMM_PAGE_SIZE);
+	}
+
 }
