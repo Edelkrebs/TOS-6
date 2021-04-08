@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stivale2.h>
-#include <driver/screen.h>
 #include <driver/vga_text.h>
 #include <debug.h>
 #include <cpu/gdt.h>
@@ -47,15 +46,14 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	
 	stivale2Init(stivale2_struct);
 
-	struct stivale2_struct_tag_memmap* memmap = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID);
-
 	initGDT(&main_gdt, main_gdt_entrys, 3);
 	loadGDT(&main_gdt);
 
 	init_bitmap(stivale2_struct);
 	populate_bitmap();
 
-	uint64_t address = (uint64_t)pmm_alloc(1);
+	uint64_t address = (uint64_t)pmm_alloc(100);
+	printhexln(address);
 	pmm_free((void*) address, 1);
 	
 	while(1) asm("hlt");

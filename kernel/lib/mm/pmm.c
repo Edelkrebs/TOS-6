@@ -41,7 +41,7 @@ void init_bitmap(struct stivale2_struct* stivale2_struct){
 		if(memmap->memmap[i].type == STIVALE2_MMAP_USABLE && memmap->memmap[i].length >= bitmap_size){
 			bitmap = (uint8_t*)(memmap->memmap[i].base);
 			break;
-		} 
+		}
 	}
 
 	for(uint64_t i = 0; i < memmap->entries; i++){
@@ -49,7 +49,7 @@ void init_bitmap(struct stivale2_struct* stivale2_struct){
 	}
 
 	print("Bitmap: ");
-	printhexln((uint64_t) bitmap);
+	printhexln((uint64_t)bitmap);
 	assert((uint64_t) bitmap == 0, "Couldn't allocate bitmap");
 	
 }
@@ -79,7 +79,7 @@ void populate_bitmap(){
 		}
 	}
 
-	for(int i = 0; i < round_up(bitmap_size, PMM_PAGE_SIZE) / PMM_PAGE_SIZE; i++){
+	for(uint64_t i = 0; i < round_up(bitmap_size, PMM_PAGE_SIZE) / PMM_PAGE_SIZE; i++){
 		bitmap_setb(i + round_down((uint64_t) bitmap, PMM_PAGE_SIZE) / PMM_PAGE_SIZE);
 	}
 
@@ -87,14 +87,12 @@ void populate_bitmap(){
 
 void* pmm_alloc(uint64_t pages){
 	assert(pages == 0, "Number of pages to allocate can't be 0!");
-	uint64_t i;
-	uint8_t success;
-	for(i = 0; i < bitmap_size * 8; i++){
+	for(uint64_t i = 0; i < bitmap_size * 8; i++){
 		if(bitmap_getb(i) == 0){
-			for(int j = 1; j <= pages; j++){
+			for(uint64_t j = 1; j <= pages; j++){
 				if(bitmap_getb(i + j) != 0){
 					if(j == pages){
-						for(int x = 0; x < j; x++){
+						for(uint64_t x = 0; x < j; x++){
 							bitmap_setb(i + x);
 						}
 						return (void*)(i * PMM_PAGE_SIZE); 
@@ -110,7 +108,7 @@ void* pmm_alloc(uint64_t pages){
 }
 
 void pmm_free(void* paddr, uint64_t pages){
-	for(int i = 0; i < pages; i++){
+	for(uint64_t i = 0; i < pages; i++){
 		bitmap_clearb((uint64_t) paddr / PMM_PAGE_SIZE + i);
 	}
 }

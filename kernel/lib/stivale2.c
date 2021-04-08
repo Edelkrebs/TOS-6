@@ -1,6 +1,5 @@
 #include <stivale2.h>
 #include <stddef.h>
-#include <driver/screen.h>
 
 static uint8_t stack[4096];
 
@@ -58,7 +57,7 @@ void *stivale2_get_tag(struct stivale2_struct *stivale2_struct, uint64_t id) {
     }
 }
 
-void stivale2Init(struct stivale2_struct* stivale2_struct){
+void stivale2Init(__attribute__((unused))struct stivale2_struct* stivale2_struct){
 #ifdef __FRAMEBUFFER_PRESENT
 	struct stivale2_struct_tag_framebuffer* fb = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
 	if(fb == NULL){

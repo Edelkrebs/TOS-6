@@ -4,6 +4,7 @@
 void kputch(char c, uint16_t row, uint16_t column);
 void printk(const char* str, uint16_t row, uint16_t column);
 void printhex(uint64_t number);
+void printhexln(uint64_t number);
 
 void warn(const char* str);
 void error(const char* str);

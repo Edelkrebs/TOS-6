@@ -26,10 +26,6 @@ INTERNALCFLAGS  :=           \
 CFILES := $(shell find ./kernel -type f -name '*.c')
 OBJ    := $(CFILES:.c=.o)
 
-limine:
-	git clone https://github.com/limine-bootloader/limine.git --branch=v2.0-branch-binary --depth=1
-		 
-	make -C limine
 		
 run: image
 	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd
@@ -59,5 +55,10 @@ $(TARGET): $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) $(INTERNALCFLAGS) -c $< -o $@
  
+limine:
+	git clone https://github.com/limine-bootloader/limine.git --branch=v2.0-branch-binary --depth=1
+		 
+	make -C limine
+
 clean:
 	rm -rf $(TARGET) $(OBJ)
