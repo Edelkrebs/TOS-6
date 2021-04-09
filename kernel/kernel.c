@@ -1,10 +1,10 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stivale2.h>
-#include <driver/screen.h>
 #include <driver/vga_text.h>
 #include <debug.h>
 #include <cpu/gdt.h>
+#include <mm/vmm.h>
 
 GDTentry main_gdt_entrys[] = {
 	{
@@ -51,6 +51,8 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	initGDT(&main_gdt, &main_gdt_entrys, 3);
 	loadGDT(&main_gdt);
+
+	init_vmm();
 
 	while(1) asm("hlt");
 
