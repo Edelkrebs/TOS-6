@@ -6,5 +6,9 @@
 uint64_t* pml4;
 
 void init_vmm();
+void activate_paging();
+
+void map_page(void* vaddr, void* paddr, uint16_t flags);
+void identitymap(void* addr, uint64_t page_count);
 
 #endif

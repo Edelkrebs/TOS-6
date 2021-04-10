@@ -4,6 +4,7 @@
 #include <driver/vga_text.h>
 #include <debug.h>
 #include <cpu/gdt.h>
+#include <mm/pmm.h>
 #include <mm/vmm.h>
 
 GDTentry main_gdt_entrys[] = {
@@ -43,17 +44,19 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	#ifndef __FRAMEBUFFER_PRESENT
 	init_terminal(VGA_WHITE, VGA_BLACK);
 	#endif
-	
-	stivale2Init(stivale2_struct);
 
 	cls();
-	printhex(&main_gdt);
-
-	initGDT(&main_gdt, &main_gdt_entrys, 3);
+	stivale2Init(stivale2_struct);
+	
+	initGDT(&main_gdt, main_gdt_entrys, 3);
 	loadGDT(&main_gdt);
 
-	init_vmm();
+	init_bitmap(stivale2_struct);
+	populate_bitmap();
 
+	init_vmm();
+//	activate_paging();
+	
 	while(1) asm("hlt");
 
 }
