@@ -18,21 +18,21 @@ GDTentry main_gdt_entrys[] = {
 		.base3 = 0
 	},
 	{
-		.limit1 = 0xFFFF,
+		.limit1 = 0,
 		.base1 = 0,
 		.base2 = 0,
 		.access_byte = 0b10011010,
 		.limit2 = 0xF,
-		.flags = 0b1110,
+		.flags = 0b0010,
 		.base3 = 0
 	},
 	{
-		.limit1 = 0xFFFF,
+		.limit1 = 0,
 		.base1 = 0,
 		.base2 = 0,
 		.access_byte = 0b10010010,
 		.limit2 = 0xF,
-		.flags = 0b1100,
+		.flags = 0,
 		.base3 = 0
 	}
 };
@@ -55,7 +55,9 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	populate_bitmap();
 
 	init_vmm();
-//	activate_paging();
+	identitymap((void*)0x0, 0x200, 0x3);
+	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
+	activate_paging();
 	
 	while(1) asm("hlt");
 
