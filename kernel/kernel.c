@@ -55,10 +55,10 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	populate_bitmap();
 
 	init_vmm();
-	identitymap((void*)0x0, 0x200, 0x3);
+	identity_map((void*)0x0, 0x100, 0x3);
 	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
 	activate_paging();
-	
+
 	while(1) asm("hlt");
 
 }
