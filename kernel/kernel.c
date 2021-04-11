@@ -1,10 +1,11 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stivale2.h>
-#include <driver/screen.h>
 #include <driver/vga_text.h>
 #include <debug.h>
 #include <cpu/gdt.h>
+#include <mm/pmm.h>
+#include <mm/vmm.h>
 
 GDTentry main_gdt_entrys[] = {
 	{
@@ -17,21 +18,21 @@ GDTentry main_gdt_entrys[] = {
 		.base3 = 0
 	},
 	{
-		.limit1 = 0xFFFF,
+		.limit1 = 0,
 		.base1 = 0,
 		.base2 = 0,
 		.access_byte = 0b10011010,
 		.limit2 = 0xF,
-		.flags = 0b1110,
+		.flags = 0b0010,
 		.base3 = 0
 	},
 	{
-		.limit1 = 0xFFFF,
+		.limit1 = 0,
 		.base1 = 0,
 		.base2 = 0,
 		.access_byte = 0b10010010,
 		.limit2 = 0xF,
-		.flags = 0b1100,
+		.flags = 0,
 		.base3 = 0
 	}
 };
@@ -43,14 +44,20 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	#ifndef __FRAMEBUFFER_PRESENT
 	init_terminal(VGA_WHITE, VGA_BLACK);
 	#endif
-	
-	stivale2Init(stivale2_struct);
 
 	cls();
-	printhex(&main_gdt);
-
-	initGDT(&main_gdt, &main_gdt_entrys, 3);
+	stivale2Init(stivale2_struct);
+	
+	initGDT(&main_gdt, main_gdt_entrys, 3);
 	loadGDT(&main_gdt);
+
+	init_bitmap(stivale2_struct);
+	populate_bitmap();
+
+	init_vmm();
+	identity_map((void*)0x0, 0x100, 0x3);
+	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
+	activate_paging();
 
 	while(1) asm("hlt");
 
