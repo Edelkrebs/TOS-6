@@ -1,6 +1,13 @@
 #include <cpu/gdt.h>
 #include <debug.h>
 
+GDTentry entrys[8192];
+
+void registerGDTentry(uint8_t entry_number, uint32_t limit, uint32_t base, uint16_t flags){
+	entrys[entry_number] = {.limit1 = limit & 0xFFFF, .base1 = base & 0xFFFF, .base2 = base & 0xFF0000, .access_byte = flags & 0xFF00,
+							.limit2 = (limit & 0xFFFFF) & 0xFFFF, .flags = flags & 0xF0, .base3 = base & 0xFF000000};
+}
+
 void initGDT(__attribute__((unused))GDT* gdt, __attribute__((unused))GDTentry* entrys, __attribute__((unused))uint16_t entrys_count){
 	gdt->start = (void*)entrys;
 	for(int i = 0; i < entrys_count; i++){
