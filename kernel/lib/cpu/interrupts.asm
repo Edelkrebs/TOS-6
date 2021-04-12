@@ -1,4 +1,3 @@
-
 %macro pushaq 0
     push rax
     push rcx
@@ -21,3 +20,5 @@
 
 isr_default_handler:
 	pushaq
+
+	push 0x0
