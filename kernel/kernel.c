@@ -22,7 +22,7 @@ GDTentry main_gdt_entrys[] = {
 		.base1 = 0,
 		.base2 = 0,
 		.access_byte = 0b10011010,
-		.limit2 = 0xF,
+		.limit2 = 0x0,
 		.flags = 0b0010,
 		.base3 = 0
 	},
@@ -31,7 +31,7 @@ GDTentry main_gdt_entrys[] = {
 		.base1 = 0,
 		.base2 = 0,
 		.access_byte = 0b10010010,
-		.limit2 = 0xF,
+		.limit2 = 0x0,
 		.flags = 0,
 		.base3 = 0
 	}
@@ -47,8 +47,10 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	cls();
 	stivale2Init(stivale2_struct);
-	
-	initGDT(&main_gdt, main_gdt_entrys, 3);
+
+	registerGDTentry(0, 0, 0, 0);	
+	registerGDTentry(1, 0, 0, 0b1001101000100000);	
+	registerGDTentry(2, 0, 0, 0b1001001000000000);	
 	loadGDT(&main_gdt);
 
 	init_bitmap(stivale2_struct);

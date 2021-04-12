@@ -19,7 +19,6 @@ typedef struct{
 } __attribute__((packed)) GDT;
 
 void registerGDTentry(uint8_t entry_number, uint32_t limit, uint32_t base, uint16_t flags); // Flags = higher 8 bits access_byte, last 4 flags
-void initGDT(GDT* gdt, GDTentry* entrys, uint16_t entrys_count);
 void loadGDT(GDT* gdt);
 
 #endif
