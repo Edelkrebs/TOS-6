@@ -4,6 +4,7 @@
 #include <driver/vga_text.h>
 #include <debug.h>
 #include <cpu/gdt.h>
+#include <cpu/idt.h>
 #include <mm/pmm.h>
 #include <mm/vmm.h>
 
@@ -21,8 +22,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	registerGDTentry(2, 0, 0, 0b1001001000000000);	
 	loadGDT();
 
-	asm ("int $3");
-
 	init_bitmap(stivale2_struct);
 	populate_bitmap();
 
@@ -30,6 +29,8 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	identity_map((void*)0x0, 0x100, 0x3);
 	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
 	activate_paging();
+
+	loadIDT();
 
 	while(1) asm("hlt");
 

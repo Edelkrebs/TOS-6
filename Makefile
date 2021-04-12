@@ -5,11 +5,10 @@ CC = x86_64-elf-gcc
 CFLAGS = -Wall -Wextra -O2 -pipe
  
 LDINTERNALFLAGS :=  \
-	-Tlinker.ld \
-	-nostdlib   \
-	-shared     \
-	-pie -fno-pic -fpie \
-	-z max-page-size=0x1000
+    -Tlinker.ld \
+    -nostdlib   \
+    -pie -static-pie -fno-pic -fpie \
+    -z max-page-size=0x1000  \
  
 INTERNALCFLAGS  :=           \
 	-I kernel/include    \
@@ -21,11 +20,11 @@ INTERNALCFLAGS  :=           \
 	-mno-3dnow           \
 	-mno-sse             \
 	-mno-sse2            \
-	-mno-red-zone		 
+	-mno-red-zone		 \
  
 CFILES := $(shell find ./kernel -type f -name '*.c')
-OBJ    := $(CFILES:.c=.o)
-
+ASMFILES := $(shell find ./kernel -type f -name '*.asm')
+OBJ    := $(CFILES:.c=.o) $(ASMFILES:.asm=.o)
 		
 run: image
 	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd
@@ -51,10 +50,13 @@ all: $(TARGET)
  
 $(TARGET): $(OBJ)
 	$(CC) $(LDINTERNALFLAGS) $(OBJ) -o $@
+
+%.o: %.asm
+	nasm -f elf64 -g $< -o $@
  
 %.o: %.c
 	$(CC) $(CFLAGS) $(INTERNALCFLAGS) -c $< -o $@
- 
+
 limine:
 	git clone https://github.com/limine-bootloader/limine.git --branch=v2.0-branch-binary --depth=1
 		 

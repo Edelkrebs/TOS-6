@@ -13,7 +13,7 @@ typedef struct{
 
 typedef struct{
 	uint16_t size;
-	void* start;
+	uint64_t start;
 } __attribute__((packed)) GDT;
 
 static GDTentry entrys[8192];
@@ -42,7 +42,7 @@ __attribute__((naked, noinline)) static void switch_cs(uint64_t sel) {
 }
 
 void loadGDT(){
-	gdt.start = entrys;
+	gdt.start = (uint64_t)entrys;
 	gdt.size = entry_count * sizeof(GDTentry) - 1;
 	asm volatile ("lgdt %0" :: "m" (gdt));
 	switch_cs(0x8);
