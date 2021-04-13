@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-void registerIDTentry(uint8_t descriptor_index, uint64_t offset, uint16_t selector, uint8_t attributes);
+void initIDT();
 void loadIDT(); 
 
 #endif
