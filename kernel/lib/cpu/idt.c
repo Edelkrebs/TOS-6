@@ -33,6 +33,9 @@ extern void isr29();
 extern void isr30();
 extern void isr31();
 
+extern void irq0();
+extern void irq1();
+
 typedef struct{
 	uint16_t offset1;
 	uint16_t selector;
@@ -62,38 +65,41 @@ static void registerIDTentry(uint8_t vector_number, uint64_t offset, uint16_t se
 }
 
 void initIDT(){
-	registerIDTentry(0, (uint64_t)isr0, 0x8, 0x8f);
-	registerIDTentry(1, (uint64_t)isr1, 0x8, 0x8f);
-	registerIDTentry(2, (uint64_t)isr2, 0x8, 0x8f);
-	registerIDTentry(3, (uint64_t)isr3, 0x8, 0x8f);
-	registerIDTentry(4, (uint64_t)isr4, 0x8, 0x8f);
-	registerIDTentry(5, (uint64_t)isr5, 0x8, 0x8f);
-	registerIDTentry(6, (uint64_t)isr6, 0x8, 0x8f);
-	registerIDTentry(7, (uint64_t)isr7, 0x8, 0x8f);
-	registerIDTentry(8, (uint64_t)isr8, 0x8, 0x8f);
-	registerIDTentry(9, (uint64_t)isr9, 0x8, 0x8f);
-	registerIDTentry(10, (uint64_t)isr10, 0x8, 0x8f);
-	registerIDTentry(11, (uint64_t)isr11, 0x8, 0x8f);
-	registerIDTentry(12, (uint64_t)isr12, 0x8, 0x8f);
-	registerIDTentry(13, (uint64_t)isr13, 0x8, 0x8f);
-	registerIDTentry(14, (uint64_t)isr14, 0x8, 0x8f);
-	registerIDTentry(16, (uint64_t)isr15, 0x8, 0x8f);
-	registerIDTentry(15, (uint64_t)isr16, 0x8, 0x8f);
-	registerIDTentry(17, (uint64_t)isr17, 0x8, 0x8f);
-	registerIDTentry(18, (uint64_t)isr18, 0x8, 0x8f);
-	registerIDTentry(19, (uint64_t)isr19, 0x8, 0x8f);
-	registerIDTentry(20, (uint64_t)isr20, 0x8, 0x8f);
-	registerIDTentry(21, (uint64_t)isr21, 0x8, 0x8f);
-	registerIDTentry(22, (uint64_t)isr22, 0x8, 0x8f);
-	registerIDTentry(23, (uint64_t)isr23, 0x8, 0x8f);
-	registerIDTentry(24, (uint64_t)isr24, 0x8, 0x8f);
-	registerIDTentry(25, (uint64_t)isr25, 0x8, 0x8f);
-	registerIDTentry(26, (uint64_t)isr26, 0x8, 0x8f);
-	registerIDTentry(27, (uint64_t)isr27, 0x8, 0x8f);
-	registerIDTentry(28, (uint64_t)isr28, 0x8, 0x8f);
-	registerIDTentry(29, (uint64_t)isr29, 0x8, 0x8f);
-	registerIDTentry(30, (uint64_t)isr30, 0x8, 0x8f);
-	registerIDTentry(31, (uint64_t)isr31, 0x8, 0x8f);
+	registerIDTentry(0, (uint64_t)isr0, 0x8, 0x8e);
+	registerIDTentry(1, (uint64_t)isr1, 0x8, 0x8e);
+	registerIDTentry(2, (uint64_t)isr2, 0x8, 0x8e);
+	registerIDTentry(3, (uint64_t)isr3, 0x8, 0x8e);
+	registerIDTentry(4, (uint64_t)isr4, 0x8, 0x8e);
+	registerIDTentry(5, (uint64_t)isr5, 0x8, 0x8e);
+	registerIDTentry(6, (uint64_t)isr6, 0x8, 0x8e);
+	registerIDTentry(7, (uint64_t)isr7, 0x8, 0x8e);
+	registerIDTentry(8, (uint64_t)isr8, 0x8, 0x8e);
+	registerIDTentry(9, (uint64_t)isr9, 0x8, 0x8e);
+	registerIDTentry(10, (uint64_t)isr10, 0x8, 0x8e);
+	registerIDTentry(11, (uint64_t)isr11, 0x8, 0x8e);
+	registerIDTentry(12, (uint64_t)isr12, 0x8, 0x8e);
+	registerIDTentry(13, (uint64_t)isr13, 0x8, 0x8e);
+	registerIDTentry(14, (uint64_t)isr14, 0x8, 0x8e);
+	registerIDTentry(16, (uint64_t)isr15, 0x8, 0x8e);
+	registerIDTentry(15, (uint64_t)isr16, 0x8, 0x8e);
+	registerIDTentry(17, (uint64_t)isr17, 0x8, 0x8e);
+	registerIDTentry(18, (uint64_t)isr18, 0x8, 0x8e);
+	registerIDTentry(19, (uint64_t)isr19, 0x8, 0x8e);
+	registerIDTentry(20, (uint64_t)isr20, 0x8, 0x8e);
+	registerIDTentry(21, (uint64_t)isr21, 0x8, 0x8e);
+	registerIDTentry(22, (uint64_t)isr22, 0x8, 0x8e);
+	registerIDTentry(23, (uint64_t)isr23, 0x8, 0x8e);
+	registerIDTentry(24, (uint64_t)isr24, 0x8, 0x8e);
+	registerIDTentry(25, (uint64_t)isr25, 0x8, 0x8e);
+	registerIDTentry(26, (uint64_t)isr26, 0x8, 0x8e);
+	registerIDTentry(27, (uint64_t)isr27, 0x8, 0x8e);
+	registerIDTentry(28, (uint64_t)isr28, 0x8, 0x8e);
+	registerIDTentry(29, (uint64_t)isr29, 0x8, 0x8e);
+	registerIDTentry(30, (uint64_t)isr30, 0x8, 0x8e);
+	registerIDTentry(31, (uint64_t)isr31, 0x8, 0x8e);
+	
+	registerIDTentry(32, (uint64_t)irq0, 0x8, 0x8e);
+	registerIDTentry(33, (uint64_t)irq1, 0x8, 0x8e);
 }
 
 void loadIDT(){

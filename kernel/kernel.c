@@ -7,6 +7,7 @@
 #include <cpu/idt.h>
 #include <mm/pmm.h>
 #include <mm/vmm.h>
+#include <cpu/io.h>
 
 void kmain(struct stivale2_struct *stivale2_struct) {
 
