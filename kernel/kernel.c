@@ -8,6 +8,7 @@
 #include <mm/pmm.h>
 #include <mm/vmm.h>
 #include <cpu/io.h>
+#include <pic.h>
 
 void kmain(struct stivale2_struct *stivale2_struct) {
 
@@ -33,6 +34,8 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	initIDT();
 	loadIDT();
+
+	PIC_remap(0x20, 0x28);
 
 	while(1) asm("hlt");
 
