@@ -3,6 +3,13 @@
 
 uint16_t number_of_entrys; 
 
+uint8_t* bitmap;
+uint64_t block_size;
+uint64_t block_limit;
+uint64_t bitmap_size;
+	
+uint64_t kernel_size;
+
 void bitmap_setb(uint64_t index){
 	bitmap[index / 8] |= 1 << (index % 8);
 }

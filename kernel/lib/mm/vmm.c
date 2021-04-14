@@ -2,6 +2,8 @@
 #include <mm/pmm.h>
 #include <debug.h>
 
+uint64_t* pml4;
+
 void init_vmm(){
 
 	pml4 = (uint64_t*) pmm_alloc(1);

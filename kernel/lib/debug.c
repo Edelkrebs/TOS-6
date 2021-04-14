@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifndef __FRAMEBUFFER_PRESENT
 static inline uint16_t* coords_to_address(uint32_t row, uint32_t column){
 	return (uint16_t*) 0xb8000 + (row * height + column);
 }
@@ -75,6 +76,7 @@ void putch(char c){
 
 void println(const char* str){
 	printk(str, row, column);
+	putch('\n');
 }
 
 void print(const char* str){
@@ -114,3 +116,7 @@ void cls(){
 	row = 0;
 	column = 0;
 }
+#else
+
+
+#endif

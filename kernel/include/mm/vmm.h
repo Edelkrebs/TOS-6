@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-uint64_t* pml4;
+extern uint64_t* pml4;
 
 void init_vmm();
 void activate_paging();
