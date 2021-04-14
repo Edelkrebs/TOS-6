@@ -1,5 +1,6 @@
 #include <driver/keyboard.h>
 #include <debug.h>
+#include <pic.h>
 
 uint8_t pressed_keys[255];
 
@@ -37,6 +38,10 @@ __attribute__((unused)) static const uint8_t ascii_nomod[] = {
 	'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', '\0', '\\', 'z', 'x', 'c', 'v',
 	'b', 'n', 'm', ',', '.', '/', '\0', '\0', '\0', ' '
 };
+
+void keyboard_init(){
+	IRQ_clear_mask(1);	
+}
 
 void process_scancode(uint8_t scancode){
 	switch(scancode){
@@ -81,15 +86,12 @@ void process_scancode(uint8_t scancode){
 	if(!(scancode & 0x80)){
 		if(shift && capslock){
 			pressed_keys[ascii_shift_capslock[scancode]] = 1;
-			putch(ascii_shift_capslock[scancode]);
 			return;
 		}else if(shift || capslock){
 			pressed_keys[ascii_shift[scancode]] = 1;
-			putch(ascii_shift[scancode]);
 			return;
 		}else{
 			pressed_keys[ascii_nomod[scancode]] = 1;
-			putch(ascii_nomod[scancode]);
 			return;
 		}
 	}else{
@@ -104,5 +106,4 @@ void process_scancode(uint8_t scancode){
 			return;
 		}
 	}
-
 }

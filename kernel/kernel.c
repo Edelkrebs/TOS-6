@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stivale2.h>
 #include <driver/vga_text.h>
+#include <driver/keyboard.h>
 #include <debug.h>
 #include <cpu/gdt.h>
 #include <cpu/idt.h>
@@ -35,12 +36,10 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	initIDT();
 	loadIDT();
 
-
-	
 	PIC_remap(0x20, 0x28);
-	__asm__ volatile("sti");
-	IRQ_clear_mask(1);
 
+	keyboard_init();
+	
 	printhexln(inb(PIC1_DATA));
 	printhexln(inb(PIC2_DATA));
 

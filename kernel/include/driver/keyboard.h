@@ -11,4 +11,6 @@ extern uint8_t alt;
 extern uint8_t scroll_lock;
 extern uint8_t num_lock;
 
+void keyboard_init();
+
 #endif

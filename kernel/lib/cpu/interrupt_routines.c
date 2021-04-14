@@ -5,8 +5,8 @@
 
 #include <driver/keyboard.h>
 
-#define SYSCLOCK_INTRQ 0x0
-#define KEYBOARD_INTRQ 0x1
+#define SYSCLOCK_IRQ 0x0
+#define KEYBOARD_IRQ 0x1
 
 extern void process_scancode(uint8_t); // Tell the keyboard driver that theres a new keypress/ release
 
@@ -53,8 +53,8 @@ void isr_handler(INTinfo* info){
 
 void irq_handler(INTinfo* info){
 
-	if(info->error_code == KEYBOARD_INTRQ){
-		process_scancode(inb(0x60));		
+	switch(info->error_code){
+		case KEYBOARD_IRQ:process_scancode(inb(0x60));		
 	}
 
 	if(info->error_code >= 8)

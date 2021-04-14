@@ -29,6 +29,8 @@ void PIC_remap(uint8_t offset1, uint8_t offset2){
 
 	outb(PIC1_DATA, mask1);
 	outb(PIC2_DATA, mask2);
+
+	__asm__ volatile("sti");
 }
 
 void IRQ_set_mask(uint8_t IRQline){
