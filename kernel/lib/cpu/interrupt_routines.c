@@ -1,4 +1,5 @@
 #include <cpu/interrupt_routines.h>
+#include <driver/screen.h>
 #include <debug.h>
 #include <pic.h>
 #include <cpu/io.h>
@@ -52,7 +53,6 @@ void isr_handler(INTinfo* info){
 }
 
 void irq_handler(INTinfo* info){
-
 	switch(info->error_code){
 		case KEYBOARD_IRQ:process_scancode(inb(0x60));		
 	}
