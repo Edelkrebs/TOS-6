@@ -32,6 +32,7 @@ run: image
 	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm
 
 image: all
+	touch image.hdd
 	rm image.hdd
 	
 	dd if=/dev/zero bs=1M count=0 seek=64 of=image.hdd
