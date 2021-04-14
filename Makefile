@@ -29,7 +29,7 @@ OBJ    := $(CFILES:.c=.o) $(ASMFILES:.asm=.o)
 
 		
 run: image
-	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd
+	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm
 
 image: all
 	rm image.hdd

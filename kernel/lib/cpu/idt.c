@@ -35,6 +35,20 @@ extern void isr31();
 
 extern void irq0();
 extern void irq1();
+extern void irq2();
+extern void irq3();
+extern void irq4();
+extern void irq5();
+extern void irq6();
+extern void irq7();
+extern void irq8();
+extern void irq9();
+extern void irq10();
+extern void irq11();
+extern void irq12();
+extern void irq13();
+extern void irq14();
+extern void irq15();
 
 typedef struct{
 	uint16_t offset1;
@@ -100,6 +114,20 @@ void initIDT(){
 	
 	registerIDTentry(32, (uint64_t)irq0, 0x8, 0x8e);
 	registerIDTentry(33, (uint64_t)irq1, 0x8, 0x8e);
+	registerIDTentry(34, (uint64_t)irq2, 0x8, 0x8e);
+	registerIDTentry(35, (uint64_t)irq3, 0x8, 0x8e);
+	registerIDTentry(36, (uint64_t)irq4, 0x8, 0x8e);
+	registerIDTentry(37, (uint64_t)irq5, 0x8, 0x8e);
+	registerIDTentry(38, (uint64_t)irq6, 0x8, 0x8e);
+	registerIDTentry(39, (uint64_t)irq7, 0x8, 0x8e);
+	registerIDTentry(40, (uint64_t)irq8, 0x8, 0x8e);
+	registerIDTentry(41, (uint64_t)irq9, 0x8, 0x8e);
+	registerIDTentry(42, (uint64_t)irq10, 0x8, 0x8e);
+	registerIDTentry(43, (uint64_t)irq11, 0x8, 0x8e);
+	registerIDTentry(44, (uint64_t)irq12, 0x8, 0x8e);
+	registerIDTentry(45, (uint64_t)irq13, 0x8, 0x8e);
+	registerIDTentry(46, (uint64_t)irq14, 0x8, 0x8e);
+	registerIDTentry(47, (uint64_t)irq15, 0x8, 0x8e);
 }
 
 void loadIDT(){

@@ -36,6 +36,20 @@ global isr31
 
 global irq0
 global irq1
+global irq2
+global irq3
+global irq4
+global irq5
+global irq6
+global irq7
+global irq8
+global irq9
+global irq10
+global irq11
+global irq12
+global irq13
+global irq14
+global irq15
 
 %macro pushaq 0
     push rax
@@ -223,8 +237,65 @@ isr31:
 irq0:
 	push 0
 	push 32
-	jmp irq_default_handler
+	;jmp irq_default_handler
+	iretq
 irq1:
 	push 1
 	push 33
+	jmp irq_default_handler
+irq2:
+	push 2
+	push 34
+	jmp irq_default_handler
+irq3:
+	push 3
+	push 35
+	jmp irq_default_handler
+irq4:
+	push 4
+	push 36
+	jmp irq_default_handler
+irq5:
+	push 5
+	push 37
+	jmp irq_default_handler
+irq6:
+	push 6
+	push 38
+	jmp irq_default_handler
+irq7:
+	push 7
+	push 39
+	jmp irq_default_handler
+irq8:
+	push 8
+	push 40
+	jmp irq_default_handler
+irq9:
+	push 9
+	push 41
+	jmp irq_default_handler
+irq10:
+	push 10
+	push 42
+	jmp irq_default_handler
+irq11:
+	push 11
+	push 43
+	jmp irq_default_handler
+irq12:
+	push 12
+	push 44
+	jmp irq_default_handler
+irq13:
+	push 13
+	push 45
+	jmp irq_default_handler
+irq14:
+	push 14
+	push 46
+	jmp irq_default_handler
+irq15:
+	push 15
+	push 47
 	jmp irq_default_handler

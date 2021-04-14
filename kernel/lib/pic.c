@@ -43,6 +43,7 @@ void IRQ_set_mask(uint8_t IRQline){
 	}
 	value = inb(port) | (1 << IRQline);
 	outb(port, value);
+	io_wait();
 }
 
 void IRQ_clear_mask(uint8_t IRQline){
@@ -58,4 +59,5 @@ void IRQ_clear_mask(uint8_t IRQline){
 
 	value = inb(port) & ~(1 << IRQline);
 	outb(port, value);
+	io_wait();
 }
