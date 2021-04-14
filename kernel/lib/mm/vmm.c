@@ -16,7 +16,7 @@ void activate_paging(){
 	asm ("mov %0, %%cr3" :: "r" (pml4));
 }
 
-__attribute__((always_inlined)) static inline void create_pml_entry(uint64_t index, uint64_t* pagemap, uint16_t flags){
+static inline void create_pml_entry(uint64_t index, uint64_t* pagemap, uint16_t flags){
 	pagemap[index] = (((uint64_t)pmm_alloc(1)) & ~0xFFF) | (flags & 0xFFF) | 0x1; 
 }
 

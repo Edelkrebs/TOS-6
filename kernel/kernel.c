@@ -2,42 +2,14 @@
 #include <stddef.h>
 #include <stivale2.h>
 #include <driver/vga_text.h>
+#include <driver/keyboard.h>
 #include <debug.h>
 #include <cpu/gdt.h>
+#include <cpu/idt.h>
 #include <mm/pmm.h>
 #include <mm/vmm.h>
-
-GDTentry main_gdt_entrys[] = {
-	{
-		.limit1 = 0,
-		.base1 = 0,
-		.base2 = 0,
-		.access_byte = 0,
-		.limit2 = 0,
-		.flags = 0,
-		.base3 = 0
-	},
-	{
-		.limit1 = 0,
-		.base1 = 0,
-		.base2 = 0,
-		.access_byte = 0b10011010,
-		.limit2 = 0xF,
-		.flags = 0b0010,
-		.base3 = 0
-	},
-	{
-		.limit1 = 0,
-		.base1 = 0,
-		.base2 = 0,
-		.access_byte = 0b10010010,
-		.limit2 = 0xF,
-		.flags = 0,
-		.base3 = 0
-	}
-};
-
-GDT main_gdt = {};
+#include <cpu/io.h>
+#include <pic.h>
 
 void kmain(struct stivale2_struct *stivale2_struct) {
 
@@ -47,9 +19,11 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	cls();
 	stivale2Init(stivale2_struct);
-	
-	initGDT(&main_gdt, main_gdt_entrys, 3);
-	loadGDT(&main_gdt);
+
+	registerGDTentry(0, 0, 0, 0);	
+	registerGDTentry(1, 0, 0, 0b1001101000100000);	
+	registerGDTentry(2, 0, 0, 0b1001001000000000);	
+	loadGDT();
 
 	init_bitmap(stivale2_struct);
 	populate_bitmap();
@@ -58,6 +32,16 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	identity_map((void*)0x0, 0x100, 0x3);
 	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
 	activate_paging();
+
+	initIDT();
+	loadIDT();
+
+	PIC_remap(0x20, 0x28);
+
+	keyboard_init();
+	
+	printhexln(inb(PIC1_DATA));
+	printhexln(inb(PIC2_DATA));
 
 	while(1) asm("hlt");
 
