@@ -15,12 +15,12 @@ void bitmap_setb(uint64_t index);
 void bitmap_clearb(uint64_t index);
 uint64_t bitmap_getb(uint64_t index);
 
-uint8_t* bitmap;
-uint64_t block_size;
-uint64_t block_limit;
-uint64_t bitmap_size;
+extern uint8_t* bitmap;
+extern uint64_t block_size;
+extern uint64_t block_limit;
+extern uint64_t bitmap_size;
 	
-uint64_t kernel_size;
+extern uint64_t kernel_size;
 
 void init_bitmap(struct stivale2_struct* stivale2_struct);
 void populate_bitmap();
