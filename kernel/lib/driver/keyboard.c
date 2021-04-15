@@ -1,4 +1,5 @@
 #include <driver/keyboard.h>
+#include <driver/screen.h>
 #include <debug.h>
 #include <pic.h>
 

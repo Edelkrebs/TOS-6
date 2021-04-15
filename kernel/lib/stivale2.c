@@ -32,7 +32,7 @@ struct stivale2_header stivale_hdr = {
     .flags = 0,
     // This header structure is the root of the linked list of header tags and
     // points to the first one (and in our case, only).
-    .tags = 0
+    .tags = (uint64_t) &framebuffer_hdr_tag
 };
 
 // that we want FROM the bootloader (structure tags).

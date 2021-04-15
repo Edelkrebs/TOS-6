@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stivale2.h>
-#include <driver/vga_text.h>
 #include <driver/keyboard.h>
+#include <driver/screen.h>
 #include <debug.h>
 #include <cpu/gdt.h>
 #include <cpu/idt.h>
@@ -13,12 +13,7 @@
 
 void kmain(struct stivale2_struct *stivale2_struct) {
 
-	#ifndef __FRAMEBUFFER_PRESENT
-	init_terminal(VGA_WHITE, VGA_BLACK);
-	#endif
-
-	cls();
-	stivale2Init(stivale2_struct);
+	screen_init(stivale2_struct);
 
 	registerGDTentry(0, 0, 0, 0);	
 	registerGDTentry(1, 0, 0, 0b1001101000100000);	
@@ -28,20 +23,17 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	init_bitmap(stivale2_struct);
 	populate_bitmap();
 
-	init_vmm();
-	identity_map((void*)0x0, 0x100, 0x3);
-	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
-	activate_paging();
-
 	initIDT();
 	loadIDT();
+
+	init_vmm();
+	identity_map((void*)0x0, 0x100000, 0x3);
+	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
+	activate_paging();
 
 	PIC_remap(0x20, 0x28);
 
 	keyboard_init();
-	
-	printhexln(inb(PIC1_DATA));
-	printhexln(inb(PIC2_DATA));
 
 	while(1) asm("hlt");
 
