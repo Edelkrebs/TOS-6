@@ -19,7 +19,9 @@ void activate_paging(){
 }
 
 static inline void create_pml_entry(uint64_t index, uint64_t* pagemap, uint16_t flags){
-	pagemap[index] = (((uint64_t)pmm_alloc(1)) & ~0xFFF) | (flags & 0xFFF) | 0x1; 
+	uint64_t* addr = (uint64_t*) pmm_alloc(1);
+	for(int i = 0; i < 512; i++) addr[i] = 0;
+	pagemap[index] = (((uint64_t)addr) & ~0xFFF) | (flags & 0xFFF) | 0x1; 
 }
 
 void map_page(void* vaddr, void* paddr, uint16_t flags){

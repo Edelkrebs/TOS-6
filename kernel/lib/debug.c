@@ -1,12 +1,11 @@
 #include <driver/screen.h>
+#include <debug.h>
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
 
-static uint8_t font_width = 8;
-static uint8_t font_height = 16;
-static uint8_t text_margin_x = 2;
-static uint8_t text_margin_y = 3;
+uint8_t font_width = 8;
+uint8_t font_height = 16;
 
 uint8_t font[4096] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -267,6 +266,14 @@ uint8_t font[4096] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
+void cls(){
+	for(uint32_t i = 0; i <= fb_pitch * fb_height; i++){
+		framebuffer[i] = 0x0;
+	}
+	row = 0;
+	column = 0;
+}
+
 void putch(char c){
 
 	if(c == '\n'){
@@ -274,6 +281,12 @@ void putch(char c){
 		column = 0;
 		return;
 	}
+
+	if(column * 4 >= fb_pitch - (font_height + text_margin_y)){
+		column = 0;
+		row += font_height + text_margin_y;	
+	}
+	
 	
 	for(uint8_t fy = 0; fy < font_height; fy++){
 		for(uint8_t fx = font_width - 1; fx > 0; fx--){
@@ -284,12 +297,49 @@ void putch(char c){
 	}
 
 	column += font_width + text_margin_x;
+
 	
 }
 
 void print(const char* str){
 	uint32_t i = 0;
 	while(str[i]) putch(str[i++]);
+}
+
+void println(const char* str){
+	print(str);
+	putch('\n');
+}
+
+void log(const char* str, LOG_TYPE type){
+	set_color(0xFF, 0xFF, 0xFF, 0xFF);
+	putch('[');
+	
+	switch(type){
+		case OK:{
+			set_color(0x32, 0x99, 0x32, 0xFF);
+			print("OK");
+			break;
+		}case SUCCESS:{
+			set_color(0x99, 0x32, 0x99, 0xFF);
+			print("SUCCESS");
+			break;
+		}case WARNING:{
+			set_color(0xFF, 0xFF, 0x8B, 0xFF);
+			print("WARNING");
+			break;
+		}case ERROR:{
+			set_color(0xFF, 0x0, 0x0, 0xFF);
+			print("ERROR");
+			break;
+		}
+	}
+	
+	set_color(0xFF, 0xFF, 0xFF, 0xFF);
+	putch(']');
+	putch(' ');
+
+	print(str);
 }
 
 void printhex(uint64_t number){
@@ -310,40 +360,10 @@ void printhexln(uint64_t number){
 	putch('\n');
 }
 
-void println(const char* str){
-	print(str);
-	putch('\n');
-}
-
-void warn(const char* str){
-	uint32_t t_color = color;
-	set_color(0xFF, 0xFF, 0x8B, 0xFF);
-	print("[WARNING] ");
-	set_color((t_color >> 16) & 0xFF, (t_color >> 8) & 0xFF, t_color & 0xFF, (t_color >> 24) & 0xFF);
-	print(str);
-}
-
-void error(const char* str){
-	uint32_t t_color = color;
-	set_color(0xFF, 0x0, 0x0, 0xFF);
-	print("[ERROR] ");
-	set_color(0xE3, 0x6F, 0x86, 0xFF);
-	print(str);
-	set_color((t_color >> 16) & 0xFF, (t_color >> 8) & 0xFF, t_color & 0xFF, (t_color >> 24) & 0xFF);
-}
-
 void panic(const char* message){
-	error("KERNEL PANICED! With message: ");
+	log("KERNEL PANICED! With message: ", ERROR);
 	set_color(0xFF, 0x0, 0x0, 0xFF);
 	println(message);
 
 	while(1);
-}
-
-void cls(){
-	for(int i = 0; i <= fb_pitch * fb_height; i++){
-		framebuffer[i] = 0x0;
-	}
-	row = 0;
-	column = 0;
 }

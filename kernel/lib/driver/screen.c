@@ -10,7 +10,10 @@ uint32_t fb_height;
 uint32_t row = 0;
 uint32_t column = 0;
 
-uint32_t color = 0xFFFFFFFFF;
+uint8_t text_margin_x = 2;
+uint8_t text_margin_y = 3;
+
+uint32_t color = 0xFFFFFFFF;
 
 struct stivale2_struct_tag_framebuffer* fb;
 
@@ -22,10 +25,14 @@ void screen_init(struct stivale2_struct* stivale2_struct){
 		asm("int $3");
 	}
 
-	framebuffer = fb->framebuffer_addr;
+	framebuffer = (uint32_t*)fb->framebuffer_addr;
 	fb_pitch = fb->framebuffer_pitch; 
 	fb_width = fb->framebuffer_width;
 	fb_height = fb->framebuffer_height;
+
+	column += text_margin_x;
+	row += text_margin_y;
+	
 }
 
 void set_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a){

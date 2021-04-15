@@ -11,6 +11,9 @@ extern uint32_t fb_height;
 extern uint32_t row;
 extern uint32_t column;
 
+extern uint8_t text_margin_x;
+extern uint8_t text_margin_y;
+
 extern uint32_t color;
 
 extern struct stivale2_struct_tag_framebuffer* fb;

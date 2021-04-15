@@ -23,13 +23,13 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	init_bitmap(stivale2_struct);
 	populate_bitmap();
 
+	initIDT();
+	loadIDT();
+
 	init_vmm();
 	identity_map((void*)0x0, 0x100000, 0x3);
 	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
 	activate_paging();
-
-	initIDT();
-	loadIDT();
 
 	PIC_remap(0x20, 0x28);
 
