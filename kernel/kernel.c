@@ -10,6 +10,7 @@
 #include <mm/vmm.h>
 #include <cpu/io.h>
 #include <pic.h>
+#include <cpuid.h>
 
 void kmain(struct stivale2_struct *stivale2_struct) {
 
