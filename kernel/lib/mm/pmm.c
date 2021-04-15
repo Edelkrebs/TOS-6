@@ -55,8 +55,6 @@ void init_bitmap(struct stivale2_struct* stivale2_struct){
 		bitmap[i] = 0;
 	}
 
-	print("Bitmap: ");
-	printhexln((uint64_t)bitmap);
 	assert((uint64_t) bitmap == 0, "Couldn't allocate bitmap");
 	
 }
