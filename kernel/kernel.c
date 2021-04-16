@@ -11,10 +11,13 @@
 #include <cpu/io.h>
 #include <pic.h>
 #include <cpuid.h>
+#include <rsdp.h>
 
 void kmain(struct stivale2_struct *stivale2_struct) {
 
 	screen_init(stivale2_struct);
+	
+	validate_rsdp(stivale2_struct);
 
 	registerGDTentry(0, 0, 0, 0);	
 	registerGDTentry(1, 0, 0, 0b1001101000100000);	

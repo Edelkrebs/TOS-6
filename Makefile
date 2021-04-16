@@ -33,8 +33,10 @@ OBJ    := $(CFILES:.c=.o) $(ASMFILES:.asm=.o)
 run: image
 	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm
 
+run_uefi: uefi_img
+	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -bios OVMF.fd
+
 image: all
-	touch image.hdd
 	rm image.hdd
 	
 	dd if=/dev/zero bs=1M count=0 seek=64 of=image.hdd
@@ -50,6 +52,16 @@ image: all
 	  
 	./limine/limine-install image.hdd
 	echfs-utils -g -p0 image.hdd import limine/limine.sys limine.sys
+
+uefi_img: all
+	rm -rf pack
+	mkdir -p pack
+	cp kernel.elf limine.cfg ./limine/limine.sys pack/
+	mkdir -p pack/EFI/BOOT
+	cp limine/BOOTX64.EFI pack/EFI/BOOT/
+	chmod +x ./dir2fat32.sh
+	./dir2fat32.sh -f image.hdd 64 pack
+	./limine/limine-install image.hdd
  
 all: $(TARGET)
  
