@@ -54,6 +54,7 @@ dkms.conf
 ./pack/
 pack/
 dir2fat32.sh
+*.fd
 
 kernel.elf
 *.txt
