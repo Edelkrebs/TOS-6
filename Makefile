@@ -31,10 +31,10 @@ OBJ    := $(CFILES:.c=.o) $(ASMFILES:.asm=.o)
 
 		
 run: image
-	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm
+	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -cpu host
 
 run_uefi: uefi_img
-	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -bios OVMF.fd
+	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -bios OVMF.fd -cpu host
 
 image: all
 	rm image.hdd

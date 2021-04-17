@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 
+typedef enum{
+	eXSDT,
+	eRSDT
+} SDT_T;
+
 typedef struct{
 	char signature[4];
 	uint32_t length;
@@ -22,16 +27,17 @@ typedef struct{
 
 typedef struct{
 	ACPISDTheader sdt_header;
-	uint64_t* pointer_xsdts[];
+	uint64_t pointer_sdts[];
 }__attribute__((packed)) XSDT;
 
-extern RSDT* rsdt;
-extern XSDT* xsdt;
+extern void* sdt;
 
-extern uint64_t rsdt_entry_count;
-extern uint64_t xsdt_entry_count;
+extern uint64_t sdt_entry_count;
 
-void* find_rsdt_entry(const char* signature);
-void* find_xsdt_entry(const char* signature);
+SDT_T sdt_type;
+
+void* find_sdt_entry(char* signature);
+
+void init_sdt();
 
 #endif
