@@ -2,29 +2,21 @@
 #define __APIC_H
 
 #include <stdint.h>
+#include <stivale2.h>
 
-typedef enum{
-	LAPIC_ACPI_ID,
-	LAPIC_APIC_ID,
-	LAPIC_FLAGS,
-
-	IOAPIC_IOAPIC_ID,
-	IOAPIC_GLOBAL_SYSTEM_INTERRUPT_BASE,
-
-	ISO_BUS_SOURCE,
-	ISO_IRQ_SOURCE,
-	ISO_GLOBAL_SYSTEM_INTERRUPT,
-	ISO_FLAGS,
-
-	NMI_ACPI_PROCESSOR_ID,
-	NMI_FLAGS,
-	NMI_LINT
-} MADT_PROPERTY;
+typedef struct{
+	uint32_t acpi_id;
+	uint32_t apic_id;
+	uint32_t flags;
+	uint64_t target_stack;
+	uint64_t goto_address;
+} __attribute__((packed)) CPU_info;
 
 extern void* lapic_addr;
-extern void* ioapic_addr;
 
-uint32_t get_madt_property(MADT_PROPERTY property);
-void init_apic(void* MADT_addr);
+extern CPU_info cpus_info[256];
+
+uint32_t get_madt_property();
+void init_apic(void* MADT_addr, struct stivale2_struct_tag_smp* stivale2_smp);
 
 #endif
