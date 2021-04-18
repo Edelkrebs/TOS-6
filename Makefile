@@ -37,8 +37,8 @@ run_uefi: uefi_img
 	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -bios OVMF.fd -cpu host -smp 4
 
 image: all
+
 	rm image.hdd
-	
 	dd if=/dev/zero bs=1M count=0 seek=64 of=image.hdd
 	 
 	parted -s image.hdd mklabel gpt
