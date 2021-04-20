@@ -18,6 +18,7 @@ typedef struct{
 	uint32_t global_sys_interrupt_base;
 } __attribute__((packed)) IOAPIC_info; 
 
+extern void* madt_lapic_addr;
 extern void* lapic_addr;
 
 extern uint64_t cpu_count;
@@ -27,5 +28,7 @@ extern IOAPIC_info ioapics_info[256];
 
 uint32_t get_madt_property();
 void init_apic();
+void write_lapic_register();
+void lapic_init();
 
 #endif

@@ -58,7 +58,7 @@ uefi_img: all
 	mkdir -p pack
 	cp kernel.elf limine.cfg ./limine/limine.sys pack/
 	mkdir -p pack/EFI/BOOT
-	cp limine/BOOTX64.EFI pack/EFI/BOOT/
+	cp ./limine/BOOTX64.EFI pack/EFI/BOOT/
 	chmod +x ./dir2fat32.sh
 	./dir2fat32.sh -f image.hdd 64 pack
 	./limine/limine-install image.hdd

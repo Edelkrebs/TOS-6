@@ -23,6 +23,8 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	init_sdt();  //Initialize the System-Descriptor-Table
 	init_apic(stivale2_struct); 
 
+	lapic_init();
+
 	registerGDTentry(0, 0, 0, 0);	
 	registerGDTentry(1, 0, 0, 0b1001101000100000);	
 	registerGDTentry(2, 0, 0, 0b1001001000000000);	
@@ -33,6 +35,7 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	initIDT();
 	loadIDT();
+	//asm("int $3");
 
 	init_vmm();
 	identity_map((void*)0x0, 0x100000, 0x3);

@@ -7,6 +7,7 @@
 #include <stivale2.h>
 #include <stddef.h>
 
+void* madt_lapic_addr;
 void* lapic_addr;
 MADT* madt;
 
@@ -32,7 +33,7 @@ void init_apic(__attribute__((unused))struct stivale2_struct* stivale2_struct){
 
 	madt = (MADT*)find_sdt_entry("APIC");
 
-	lapic_addr = (void*)((uint64_t)madt->lapic_addr);
+	madt_lapic_addr = (void*)((uint64_t)madt->lapic_addr);
 
 	uint8_t* madt_bytes = (uint8_t*) madt;
 	uint64_t entry_type_0_index = 0;
@@ -71,7 +72,7 @@ void init_apic(__attribute__((unused))struct stivale2_struct* stivale2_struct){
 		}
 	}
 	if(entry_type_5 != NULL){
-		lapic_addr = (void*) entry_type_5->lapic64_addr;
+		madt_lapic_addr = (void*) entry_type_5->lapic64_addr;
 	}
 
 	if(entry_type_0_index != cpu_count){
@@ -87,13 +88,30 @@ void init_apic(__attribute__((unused))struct stivale2_struct* stivale2_struct){
 			.target_stack = stivale2_smp->smp_info[i].target_stack
 		};
 		cpus_info[i] = cpu_info;
-		print("CPU: ");
-		printhexln(i);
-		printhexln(cpu_info.acpi_id);
-		printhexln(cpu_info.apic_id);
-		printhexln(cpu_info.flags);
-		printhexln(cpu_info.goto_address);
-		printhexln(cpu_info.target_stack);
 	}
 
+	for(uint64_t i = 0; i < entry_type_1_index; i++){
+		IOAPIC_info ioapic_info = {
+			.global_sys_interrupt_base = entry_types_1[i]->global_sys_interrupt_base,
+			.ioapic_addr = entry_types_1[i]->io_apic_addr,
+			.ioapic_id = entry_types_1[i]->io_apic_id,
+		};
+		ioapics_info[i] = ioapic_info;
+	}
+
+	uint32_t edx, eax;
+
+	__asm__ volatile ("mov $0x1B, %%ecx\n\t"
+					  "rdmsr\n\t" : "=d" (edx), "=a" (eax));
+
+	lapic_addr = (void*)((uint64_t)(eax & 0xFFFFF000));
+}
+
+void lapic_init(){
+	__asm__ volatile("mov $0x1B, %%ecx\n\t"
+					 "xor %%eax, %%eax\n\t"
+					 "or $0x800, %%eax\n\t"
+					 "xor %%edx, %%edx\n\t"
+					 "wrmsr\n\t" ::: "%eax", "%ecx", "%edx"); 
+	*((uint32_t*)(lapic_addr + 0xF0)) |= 0x100;
 }
