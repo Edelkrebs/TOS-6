@@ -19,11 +19,9 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	screen_init(stivale2_struct);
 
+	PIC_remap(0x20, 0x28);
 	validate_rsdp(stivale2_struct); //Initialize the Root-System-Descriptor-Table
 	init_sdt();  //Initialize the System-Descriptor-Table
-	init_apic(stivale2_struct); 
-
-	lapic_init();
 
 	registerGDTentry(0, 0, 0, 0);	
 	registerGDTentry(1, 0, 0, 0b1001101000100000);	
@@ -35,14 +33,14 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	initIDT();
 	loadIDT();
-	//asm("int $3");
+
+	init_apic(stivale2_struct); 
+	lapic_init();
 
 	init_vmm();
 	identity_map((void*)0x0, 0x100000, 0x3);
 	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
 	activate_paging();
-
-	PIC_remap(0x20, 0x28);
 
 	keyboard_init();
 

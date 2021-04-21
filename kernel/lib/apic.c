@@ -3,6 +3,8 @@
 #include <acpi_tables/madt.h>
 #include <rsdt.h>
 #include <acpi_tables/madt.h>
+#include <cpu/msr.h>
+#include <pic.h>
 
 #include <stivale2.h>
 #include <stddef.h>
@@ -22,9 +24,10 @@ static MADT_ENTRY_TYPE_2* entry_types_2[256];
 static MADT_ENTRY_TYPE_4* entry_types_4[256];
 static MADT_ENTRY_TYPE_5* entry_type_5;
 
-uint32_t get_madt_property(){
-	return 0;
-}
+static uint64_t entry_type_0_index = 0;
+static uint64_t entry_type_1_index = 0;
+static uint64_t entry_type_2_index = 0;
+static uint64_t entry_type_4_index = 0;
 
 void init_apic(__attribute__((unused))struct stivale2_struct* stivale2_struct){
 	struct stivale2_struct_tag_smp* stivale2_smp = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
@@ -36,10 +39,6 @@ void init_apic(__attribute__((unused))struct stivale2_struct* stivale2_struct){
 	madt_lapic_addr = (void*)((uint64_t)madt->lapic_addr);
 
 	uint8_t* madt_bytes = (uint8_t*) madt;
-	uint64_t entry_type_0_index = 0;
-	uint64_t entry_type_1_index = 0;
-	uint64_t entry_type_2_index = 0;
-	uint64_t entry_type_4_index = 0;
 	uint64_t index = sizeof(MADT);
 
 	while(index < madt->header.length){
@@ -99,19 +98,34 @@ void init_apic(__attribute__((unused))struct stivale2_struct* stivale2_struct){
 		ioapics_info[i] = ioapic_info;
 	}
 
-	uint32_t edx, eax;
+	for(uint8_t i = 0; i < 16; i++){
+		IRQ_set_mask(i);
+	}
 
-	__asm__ volatile ("mov $0x1B, %%ecx\n\t"
-					  "rdmsr\n\t" : "=d" (edx), "=a" (eax));
-
-	lapic_addr = (void*)((uint64_t)(eax & 0xFFFFF000));
+	lapic_addr = (void*)(rdmsr(MSR_IA32_APIC_BASE) & 0xFFFFF000);
 }
 
 void lapic_init(){
-	__asm__ volatile("mov $0x1B, %%ecx\n\t"
-					 "xor %%eax, %%eax\n\t"
-					 "or $0x800, %%eax\n\t"
-					 "xor %%edx, %%edx\n\t"
-					 "wrmsr\n\t" ::: "%eax", "%ecx", "%edx"); 
-	*((uint32_t*)(lapic_addr + 0xF0)) |= 0x100;
+
+	for(uint32_t i = 0; i < entry_type_4_index; i++){
+		if(entry_types_4[i]->acpi_processor_id == 0xFF || entry_types_4[i]->acpi_processor_id == (*((uint32_t*)(lapic_addr + LOCAL_APIC_ID_REGISTER)) >> 24)){
+			switch(entry_types_4[i]->lint){
+				case 0: *((uint32_t*) (lapic_addr + LVT_LINT0_REGISTER)) = 0x400; break;
+				case 1: *((uint32_t*) (lapic_addr + LVT_LINT1_REGISTER)) = 0x400; break;
+			}
+		}
+	}
+
+	wrmsr(MSR_IA32_APIC_BASE, rdmsr(MSR_IA32_APIC_BASE) | 0x100);
+	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= 0x100; 
+}
+
+void write_ioapic_register(uint32_t reg, uint64_t value){
+	
+}
+
+void init_ioapic(){
+	for(uint32_t i = 0; i < entry_type_1_index; i++){
+
+	}
 }
