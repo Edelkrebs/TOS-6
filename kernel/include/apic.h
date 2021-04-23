@@ -30,6 +30,11 @@
 #define CURRENT_COUNTER_REGISTER 0x390
 #define DIVIDE_CONFIGURATION_REGISTER 0x3E0
 
+#define IOAPICID_REGISTER 0x0
+#define IOAPICVER_REGISTER 0x1
+#define IOAPICARB_REGISTER 0x2
+#define IOREDTBL_BASE_REGISTER 0x10
+
 typedef struct{
     uint32_t acpi_id;
 	uint32_t apic_id;
@@ -40,13 +45,14 @@ typedef struct{
 
 typedef struct{
 	uint8_t ioapic_id;
-	uint32_t ioapic_addr;
+	uint64_t ioapic_addr;
 	uint32_t global_sys_interrupt_base;
 } __attribute__((packed)) IOAPIC_info; 
 
-extern void* madt_lapic_addr;
-extern void* lapic_addr;
+extern volatile void* madt_lapic_addr;
+extern volatile void* lapic_addr;
 
+extern uint64_t ioapic_count;
 extern uint64_t cpu_count;
 
 extern CPU_info cpus_info[256];
@@ -56,7 +62,7 @@ void init_apic();
 void write_lapic_register();
 void lapic_init();
 
-void write_ioapic_register(uint32_t reg, uint64_t value);
-void init_ioapic();
+void write_ioapic_register(uint32_t ioapic_id, uint32_t reg, uint32_t value);
+void init_ioapics();
 
 #endif

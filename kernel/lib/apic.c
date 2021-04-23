@@ -9,14 +9,15 @@
 #include <stivale2.h>
 #include <stddef.h>
 
-void* madt_lapic_addr;
-void* lapic_addr;
+volatile void* madt_lapic_addr;
+volatile void* lapic_addr;
 MADT* madt;
 
 CPU_info cpus_info[256];
 IOAPIC_info ioapics_info[256];
 
-uint64_t cpu_count;
+uint64_t ioapic_count = 0;
+uint64_t cpu_count = 0;
 
 static MADT_ENTRY_TYPE_0* entry_types_0[256];
 static MADT_ENTRY_TYPE_1* entry_types_1[256];
@@ -92,10 +93,11 @@ void init_apic(__attribute__((unused))struct stivale2_struct* stivale2_struct){
 	for(uint64_t i = 0; i < entry_type_1_index; i++){
 		IOAPIC_info ioapic_info = {
 			.global_sys_interrupt_base = entry_types_1[i]->global_sys_interrupt_base,
-			.ioapic_addr = entry_types_1[i]->io_apic_addr,
-			.ioapic_id = entry_types_1[i]->io_apic_id,
+			.ioapic_addr = (uint64_t)entry_types_1[i]->ioapic_addr,
+			.ioapic_id = entry_types_1[i]->ioapic_id,
 		};
 		ioapics_info[i] = ioapic_info;
+		ioapic_count++;
 	}
 
 	for(uint8_t i = 0; i < 16; i++){
@@ -103,6 +105,7 @@ void init_apic(__attribute__((unused))struct stivale2_struct* stivale2_struct){
 	}
 
 	lapic_addr = (void*)(rdmsr(MSR_IA32_APIC_BASE) & 0xFFFFF000);
+
 }
 
 void lapic_init(){
@@ -120,12 +123,59 @@ void lapic_init(){
 	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= 0x100; 
 }
 
-void write_ioapic_register(uint32_t reg, uint64_t value){
-	
+void write_ioapic_register(uint32_t ioapic_id, uint32_t reg, uint32_t value){
+	for(uint64_t i = 0; i < ioapic_count; i++){
+		if(ioapics_info[ioapic_id].ioapic_id == ioapic_id){
+			*(uint32_t volatile*)(ioapics_info[0].ioapic_addr) = reg;
+			*(uint32_t volatile*)(ioapics_info[0].ioapic_addr + 0x10) = value;	
+		}
+	}
 }
 
-void init_ioapic(){
-	for(uint32_t i = 0; i < entry_type_1_index; i++){
+uint32_t read_ioapic_register(uint32_t ioapic_id, uint32_t reg){
+	for(uint64_t i = 0; i < ioapic_count; i++){
+		if(ioapics_info[ioapic_id].ioapic_id == ioapic_id){
+			*(uint32_t volatile*)(ioapics_info[ioapic_id].ioapic_addr) = reg;
+			return *(uint32_t volatile*)(ioapics_info[ioapic_id].ioapic_addr + 0x10);	
+		}
+	}
 
+	return -1;
+}
+
+static void init_ioapic(uint32_t ioapic){
+	for(uint64_t i = 0; i < entry_type_2_index; i++){
+		uint32_t lower_flags = 0;
+		uint32_t upper_flags = 0;
+		if(entry_types_2[i]->flags & 0x2){
+			lower_flags |= 0x2000;
+		}
+		if(entry_types_2[i]->flags & 0x8){
+			lower_flags |= 0x8000;
+		}
+		lower_flags |= 32 + (uint8_t)entry_types_2[i]->irq_source;
+		write_ioapic_register(ioapics_info[ioapic].ioapic_id, IOREDTBL_BASE_REGISTER + entry_types_2[i]->global_system_interrupt * 2, lower_flags);
+		write_ioapic_register(ioapics_info[ioapic].ioapic_id, IOREDTBL_BASE_REGISTER + entry_types_2[i]->global_system_interrupt * 2 + 1, upper_flags);
+	}
+
+	for(uint64_t i = 0; i < 16; i++){
+		for(uint64_t j = 0; j < entry_type_2_index; j++){
+			if(entry_types_2[j]->global_system_interrupt == i){
+				goto end;
+			}
+		}
+		uint32_t lower_flags = (uint8_t)(32 + i);
+		uint32_t upper_flags = 0;
+
+		write_ioapic_register(ioapics_info[ioapic].ioapic_id, IOREDTBL_BASE_REGISTER + i * 2, lower_flags);
+		write_ioapic_register(ioapics_info[ioapic].ioapic_id, IOREDTBL_BASE_REGISTER + i * 2 + 1, upper_flags);
+end:
+		continue;
+	}
+}
+
+void init_ioapics(){
+	for(uint32_t i = 0; i < ioapic_count; i++){
+		init_ioapic(i);
 	}
 }

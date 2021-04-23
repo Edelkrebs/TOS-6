@@ -37,6 +37,10 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	init_apic(stivale2_struct); 
 	lapic_init();
 
+	init_ioapics();
+
+	asm("int $32");
+
 	init_vmm();
 	identity_map((void*)0x0, 0x100000, 0x3);
 	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
