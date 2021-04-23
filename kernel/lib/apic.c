@@ -5,6 +5,8 @@
 #include <acpi_tables/madt.h>
 #include <cpu/msr.h>
 #include <pic.h>
+#include <cpuid.h>
+#include <cpu/cpu_info.h>
 
 #include <stivale2.h>
 #include <stddef.h>
@@ -13,11 +15,9 @@ volatile void* madt_lapic_addr;
 volatile void* lapic_addr;
 MADT* madt;
 
-CPU_info cpus_info[256];
 IOAPIC_info ioapics_info[256];
 
 uint64_t ioapic_count = 0;
-uint64_t cpu_count = 0;
 
 static MADT_ENTRY_TYPE_0* entry_types_0[256];
 static MADT_ENTRY_TYPE_1* entry_types_1[256];
