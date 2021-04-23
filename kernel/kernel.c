@@ -19,10 +19,11 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	screen_init(stivale2_struct);
 //	struct stivale2_struct_tag_smp* stivale2_smp = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
-	
+
+	printhexln(0xE);	
 	validate_rsdp(stivale2_struct); //Initialize the Root-System-Descriptor-Table
 	init_sdt();  //Initialize the System-Descriptor-Table
-	init_apic(find_sdt_entry("APIC")); 
+//	init_apic(find_sdt_entry("APIC")); 
 	
 	registerGDTentry(0, 0, 0, 0);	
 	registerGDTentry(1, 0, 0, 0b1001101000100000);	
