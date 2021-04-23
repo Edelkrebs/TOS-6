@@ -37,8 +37,8 @@ run_uefi: uefi_img
 	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -bios OVMF.fd -cpu host -smp 4
 
 image: all
+
 	rm image.hdd
-	
 	dd if=/dev/zero bs=1M count=0 seek=64 of=image.hdd
 	 
 	parted -s image.hdd mklabel gpt
@@ -58,7 +58,7 @@ uefi_img: all
 	mkdir -p pack
 	cp kernel.elf limine.cfg ./limine/limine.sys pack/
 	mkdir -p pack/EFI/BOOT
-	cp limine/BOOTX64.EFI pack/EFI/BOOT/
+	cp ./limine/BOOTX64.EFI pack/EFI/BOOT/
 	chmod +x ./dir2fat32.sh
 	./dir2fat32.sh -f image.hdd 64 pack
 	./limine/limine-install image.hdd

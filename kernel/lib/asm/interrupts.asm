@@ -237,8 +237,7 @@ isr31:
 irq0:
 	push 0
 	push 32
-	;jmp irq_default_handler
-	iretq
+	jmp irq_default_handler
 irq1:
 	push 1
 	push 33

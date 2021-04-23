@@ -23,9 +23,9 @@ typedef struct{
 
 typedef struct{
 	MADT_ENTRY_HEADER header;
-	uint8_t io_apic_id;
+	uint8_t ioapic_id;
 	uint8_t reserved;
-	uint32_t io_apic_addr;
+	uint32_t ioapic_addr;
 	uint32_t global_sys_interrupt_base;
 } __attribute__((packed)) MADT_ENTRY_TYPE_1;
 
