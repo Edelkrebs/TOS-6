@@ -30,7 +30,7 @@ static uint64_t entry_type_1_index = 0;
 static uint64_t entry_type_2_index = 0;
 static uint64_t entry_type_4_index = 0;
 
-void init_apic(__attribute__((unused))struct stivale2_struct* stivale2_struct){
+void init_apic(struct stivale2_struct* stivale2_struct){
 	struct stivale2_struct_tag_smp* stivale2_smp = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
 	
 	cpu_count = stivale2_smp->cpu_count;
@@ -121,6 +121,7 @@ void lapic_init(){
 
 	wrmsr(MSR_IA32_APIC_BASE, rdmsr(MSR_IA32_APIC_BASE) | 0x100);
 	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= 0x100; 
+	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= 0xFF; 
 }
 
 void write_ioapic_register(uint32_t ioapic_id, uint32_t reg, uint32_t value){

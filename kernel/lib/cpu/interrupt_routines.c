@@ -59,11 +59,13 @@ void irq_handler(INTinfo* info){
 	switch(info->error_code){
 		case KEYBOARD_IRQ: process_scancode(inb(0x60));		
 	}
-	if(!supports_apic){
-		if(info->error_code >= 8)
-			outb(PIC2_COMMAND, 0x20);
-		outb(PIC1_COMMAND, 0x20);	
-	}else{
-		*((uint32_t*)(lapic_addr + EOI_REGISTER)) = 0x1;
+	if(info->error_code != 0xFE){
+		if(!supports_apic){
+			if(info->error_code >= 8)
+				outb(PIC2_COMMAND, 0x20);
+			outb(PIC1_COMMAND, 0x20);	
+		}else{
+			*((uint32_t*)(lapic_addr + EOI_REGISTER)) = 0x1;
+		}
 	}
 }

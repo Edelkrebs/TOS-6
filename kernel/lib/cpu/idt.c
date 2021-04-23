@@ -49,6 +49,7 @@ extern void irq12();
 extern void irq13();
 extern void irq14();
 extern void irq15();
+extern void spurious_interrupt();
 
 typedef struct{
 	uint16_t offset1;
@@ -128,6 +129,8 @@ void initIDT(){
 	registerIDTentry(45, (uint64_t)irq13, 0x8, 0x8e);
 	registerIDTentry(46, (uint64_t)irq14, 0x8, 0x8e);
 	registerIDTentry(47, (uint64_t)irq15, 0x8, 0x8e);
+
+	registerIDTentry(0xFE, (uint64_t)spurious_interrupt, 0x8, 0x8e);
 }
 
 void loadIDT(){
