@@ -3,13 +3,21 @@
 
 static uint8_t stack[4096];
 
+struct stivale2_header_tag_smp smp_hdr_tag = {
+	.tag = {
+		.identifier = STIVALE2_HEADER_TAG_SMP_ID,
+		.next = 0
+	},
+	.flags = 0,
+};
+
 struct stivale2_header_tag_framebuffer framebuffer_hdr_tag = {
     // All tags need to begin with an identifier and a pointer to the next tag.
     .tag = {
         // Identification constant defined in stivale2.h and the specification.
         .identifier = STIVALE2_HEADER_TAG_FRAMEBUFFER_ID,
         // If next is 0, then this marks the end of the linked list of tags.
-        .next = 0
+        .next = (uint64_t)&smp_hdr_tag
     },
     // We set all the framebuffer specifics to 0 as we want the bootloader
     // to pick the best it can.
@@ -55,18 +63,4 @@ void *stivale2_get_tag(struct stivale2_struct *stivale2_struct, uint64_t id) {
         // Get a pointer to the next tag in the linked list and repeat.
         current_tag = (void *)current_tag->next;
     }
-}
-
-void stivale2Init(__attribute__((unused))struct stivale2_struct* stivale2_struct){
-#ifdef __FRAMEBUFFER_PRESENT
-	struct stivale2_struct_tag_framebuffer* fb = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
-	if(fb == NULL){
-		while(1)asm("int $3");
-	}
-	fb_addr = (uint8_t*) fb->framebuffer_addr;
-	fb_width = fb->framebuffer_width;
-	fb_height = fb->framebuffer_height;
-	fb_bpp = fb->framebuffer_bpp; 
-	fb_pitch = fb->framebuffer_pitch;
-#endif
 }

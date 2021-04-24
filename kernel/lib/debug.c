@@ -270,15 +270,15 @@ void cls(){
 	for(uint32_t i = 0; i <= fb_pitch * fb_height; i++){
 		framebuffer[i] = 0x0;
 	}
-	row = 0;
-	column = 0;
+	row = text_margin_x;
+	column = text_margin_y;
 }
 
 void putch(char c){
 
 	if(c == '\n'){
 		row += font_height + text_margin_y;
-		column = 0;
+		column = text_margin_x;
 		return;
 	}
 
@@ -327,6 +327,10 @@ void log(const char* str, LOG_TYPE type){
 		}case WARNING:{
 			set_color(0xFF, 0xFF, 0x8B, 0xFF);
 			print("WARNING");
+			break;
+		}case INFO:{
+			set_color(0x0, 0xF3, 0xFF, 0xFF);
+			print("INFO");
 			break;
 		}case ERROR:{
 			set_color(0xFF, 0x0, 0x0, 0xFF);

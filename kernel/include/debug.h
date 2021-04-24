@@ -6,6 +6,7 @@
 typedef enum{
 	OK,
 	SUCCESS,
+	INFO,
 	WARNING,
 	ERROR
 } LOG_TYPE;
