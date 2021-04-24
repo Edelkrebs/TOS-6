@@ -30,6 +30,21 @@ static uint64_t entry_type_1_index = 0;
 static uint64_t entry_type_2_index = 0;
 static uint64_t entry_type_4_index = 0;
 
+uint32_t get_apic_id(){
+	return *((uint32_t*) (lapic_addr + LOCAL_APIC_ID_REGISTER));
+}
+
+CPU_info* get_unique_cpu_info(){
+	for(uint64_t i = 0; i < cpu_count; i++){
+		if(cpus_info[i].apic_id == get_apic_id()){
+			return &cpus_info[i];
+			break;
+		}
+	}
+	panic("Couldn't find CPU info for specified CPU!");
+	return 0;
+}
+
 void init_apic(struct stivale2_struct* stivale2_struct){
 	struct stivale2_struct_tag_smp* stivale2_smp = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
 	

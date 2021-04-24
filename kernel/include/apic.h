@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stivale2.h>
+#include <cpu/cpu_info.h>
 
 #define LOCAL_APIC_ID_REGISTER 0x20
 #define LOCAL_APIC_VERSION_REGISTER 0x30
@@ -47,6 +48,9 @@ extern volatile void* lapic_addr;
 extern uint64_t ioapic_count;
 
 extern IOAPIC_info ioapics_info[256];
+
+uint32_t get_apic_id();
+CPU_info* get_unique_cpu_info();
 
 void init_apic();
 void write_lapic_register();

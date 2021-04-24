@@ -1,20 +1,34 @@
 #include <mm/vmm.h>
 #include <mm/pmm.h>
 #include <debug.h>
+#include <cpu/cpu_info.h>
+#include <apic.h>
 
 uint64_t* pml4;
 
 void init_vmm(){
 
-	pml4 = (uint64_t*) pmm_alloc(1);
+	if(supports_apic){
+		get_unique_cpu_info()->pml4 = (uint64_t*) pmm_alloc(1);
 
-	for(int i = 0; i < 512; i++){
-		pml4[i] = 0;
+		for(uint64_t i = 0; i < 512; i++){
+			get_unique_cpu_info()->pml4[i] = 0;
+		}
+	}else{
+		pml4 = (uint64_t*) pmm_alloc(1);
+
+		for(uint64_t i = 0; i < 512; i++){
+			pml4[i] = 0;
+		}
 	}
 
 }
 
 void activate_paging(){
+	if(supports_apic){
+		asm ("mov %0, %%cr3" :: "r" (get_unique_cpu_info()->pml4));	
+		return;
+	}
 	asm ("mov %0, %%cr3" :: "r" (pml4));
 }
 
@@ -28,16 +42,33 @@ void map_page(void* vaddr, void* paddr, uint16_t flags){
 
 	flags &= 0xFFF;
 
+	uint64_t* unique_pml4 = 0;
+
+	if(supports_apic){
+		unique_pml4 = get_unique_cpu_info()->pml4;
+	}
+
 	uint64_t pt_index = ((uint64_t)vaddr >> 12) & 0x1FF;
 	uint64_t pd_index = ((uint64_t)vaddr >> 21) & 0x1FF;
 	uint64_t pdpt_index = ((uint64_t)vaddr >> 30) & 0x1FF;
 	uint64_t pml4_index = ((uint64_t)vaddr >> 39) & 0x1FF;
 
-	if((pml4[pml4_index] & 0x1) == 0){
-		create_pml_entry(pml4_index, pml4, 0x3);
+	if(supports_apic){
+		if((unique_pml4[pml4_index] & 0x1) == 0){
+			create_pml_entry(pml4_index, unique_pml4, 0x3);
+		}
+	}else{
+		if((pml4[pml4_index] & 0x1) == 0){
+			create_pml_entry(pml4_index, pml4, 0x3);
+		}
 	}
 
-	uint64_t* pdpt = (uint64_t*)(pml4[pml4_index] & ~0xFFF);
+	uint64_t* pdpt;
+	if(supports_apic){
+		pdpt = (uint64_t*)(unique_pml4[pml4_index] & ~0xFFF);
+	}else{
+		pdpt = (uint64_t*)(pml4[pml4_index] & ~0xFFF);
+	}
 
 	if((pdpt[pdpt_index] & 0x1) == 0){
 		create_pml_entry(pdpt_index, pdpt, 0x3);
@@ -67,16 +98,29 @@ void unmap_page(void* vaddr){
 	uint64_t pdpt_index = ((uint64_t)vaddr >> 30) & 0x1FF;
 	uint64_t pml4_index = ((uint64_t)vaddr >> 39) & 0x1FF;
 	
-	if((pml4[pml4_index] & 0x1) == 0){
-		panic("Trying to unmap a nonexistant page in a nonexistant pml4!");
+	uint64_t* unique_pml4 = 0;
+
+	if(supports_apic){
+		unique_pml4 = get_unique_cpu_info()->pml4;
+	}
+
+	if(supports_apic){
+		if((unique_pml4[pml4_index] & 0x1) == 0){
+			create_pml_entry(pml4_index, unique_pml4, 0x3);
+		}
+	}else{
+		if((pml4[pml4_index] & 0x1) == 0){
+			create_pml_entry(pml4_index, pml4, 0x3);
+		}
 	}
 	
-	uint64_t* pdpt = (uint64_t*)(pml4[pml4_index] & ~0xFFF);
-	
-	if((pdpt[pdpt_index] & 0x1) == 0){
-		panic("Trying to unmap a nonexistant page in a nonexistant pdpt!");
+	uint64_t* pdpt;
+	if(supports_apic){
+		pdpt = (uint64_t*)(unique_pml4[pml4_index] & ~0xFFF);
+	}else{
+		pdpt = (uint64_t*)(pml4[pml4_index] & ~0xFFF);
 	}
-	
+
 	uint64_t* pd = (uint64_t*)(pdpt[pdpt_index] & ~0xFFF);
 	
 	if((pd[pd_index] & 0x1) == 0){

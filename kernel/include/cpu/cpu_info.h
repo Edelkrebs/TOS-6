@@ -9,6 +9,7 @@ typedef struct{
 	uint32_t flags;
 	uint64_t target_stack;
 	uint64_t goto_address;
+	uint64_t* pml4;
 } __attribute__((packed)) CPU_info;
 
 extern CPU_info cpus_info[256];

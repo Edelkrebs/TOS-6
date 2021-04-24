@@ -72,13 +72,23 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	keyboard_init();
 	log("Initializing Keyboard driver\n", SUCCESS);
 
-	cls();
+	//cls();
 
 	while(1) asm("hlt");
 
 }
 
 void ap_main(){
+	println("AYOOOOOOOOOO");
+	while(1) asm("hlt");
+	/*
 	loadGDT();
+	loadIDT();
 	lapic_init();
+
+	init_vmm();
+	identity_map((void*)0x0, 0x100000, 0x3);
+	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
+	activate_paging();
+	*/
 }
