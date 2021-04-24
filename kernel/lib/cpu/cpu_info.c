@@ -9,6 +9,4 @@ void setup_flags(){
 	uint32_t eax = 0, ebx = 0, ecx = 0, edx = 0;
 
 	__get_cpuid(1, &eax, &ebx, &ecx, &edx);
-
-	supports_apic = !!(edx & 0x100);
 }

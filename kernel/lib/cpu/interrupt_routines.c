@@ -52,6 +52,8 @@ char* exceptions[] = {
 void isr_handler(INTinfo* info){
 	log("Exception happened with error code: ", ERROR);
 	printhexln(info->error_code);
+	log("On RIP: ", ERROR);
+	printhexln(info->rip);
 	panic(exceptions[info->vector_number]);		
 }
 
@@ -60,12 +62,6 @@ void irq_handler(INTinfo* info){
 		case KEYBOARD_IRQ: process_scancode(inb(0x60));		
 	}
 	if(info->error_code != 0xFE){
-		if(!supports_apic){
-			if(info->error_code >= 8)
-				outb(PIC2_COMMAND, 0x20);
-			outb(PIC1_COMMAND, 0x20);	
-		}else{
-			*((uint32_t*)(lapic_addr + EOI_REGISTER)) = 0x1;
-		}
+		*((uint32_t*)(lapic_addr + EOI_REGISTER)) = 0x1;
 	}
 }

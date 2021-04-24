@@ -15,6 +15,7 @@
 #include <rsdt.h>
 #include <apic.h>
 #include <cpu/cpu_info.h>
+#include <cpu/mp.h>
 
 void kmain(struct stivale2_struct *stivale2_struct) {
 
@@ -39,7 +40,7 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	init_bitmap(stivale2_struct);
 	log("Initializing bitmap\n", SUCCESS);
 	populate_bitmap();
-	log("Populating bitmap\n", SUCCESS);
+	log("Populating bitmap\n", SUCCESS);	
 
 	initIDT();
 	log("Initializing IDT\n", SUCCESS);
@@ -49,22 +50,19 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	PIC_remap(0x20, 0x28);
 	log("Remapping PIC\n", INFO);
 
-    if(supports_apic){
-		log("PC supports APIC\n", SUCCESS);
-	    init_apic(stivale2_struct); 
-		log("Initializing APIC\n", INFO);
-	    lapic_init();
-	    log("Initializing Local APIC\n", INFO);
-		init_ioapics();
-		log("Initializing IOAPIC(s)\n", INFO);
-	}else{
-		log("PC does not support APIC\n", WARNING);
-	}
+	log("PC supports APIC\n", SUCCESS);
+    init_apic(stivale2_struct); 
+	log("Initializing APIC\n", INFO);
+    lapic_init();
+    log("Initializing Local APIC\n", INFO);
+	init_ioapics();
+	log("Initializing IOAPIC(s)\n", INFO);
 
 	init_vmm();
 	log("Setting up VMM\n", INFO);
 	identity_map((void*)0x0, 0x100000, 0x3);
 	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
+	unmap_page((void*)0x0);
 	log("Mapping pages\n", SUCCESS);
 	activate_paging();
 	log("Loading CR3\n", SUCCESS);
@@ -72,7 +70,7 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	keyboard_init();
 	log("Initializing Keyboard driver\n", SUCCESS);
 
-	//cls();
+	init_smp(stivale2_struct);
 
 	while(1) asm("hlt");
 
@@ -80,15 +78,16 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 void ap_main(){
 	println("AYOOOOOOOOOO");
-	while(1) asm("hlt");
-	/*
+	
+	init_vmm();
+	identity_map((void*)0x0, 0x100000, 0x3);
+	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
+	unmap_page((void*)0x0);
+	activate_paging();
+
 	loadGDT();
 	loadIDT();
 	lapic_init();
 
-	init_vmm();
-	identity_map((void*)0x0, 0x100000, 0x3);
-	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
-	activate_paging();
-	*/
+	while(1) asm("hlt");
 }
