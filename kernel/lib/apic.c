@@ -38,9 +38,7 @@ uint32_t get_apic_id(){
 CPU_info* get_unique_cpu_info(){
 	for(uint64_t i = 0; i < cpu_count; i++){
 		if(cpus_info[i].apic_id == get_apic_id() >> 24){
-			asm ("nop");
 			return &cpus_info[i];
-			asm ("nop");
 			break;
 		}
 	}

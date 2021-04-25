@@ -70,7 +70,7 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	keyboard_init();
 	log("Initializing Keyboard driver\n", SUCCESS);
 
-	init_smp(stivale2_struct);
+	//init_smp(stivale2_struct);
 
 	while(1) asm("hlt");
 
