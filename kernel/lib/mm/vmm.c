@@ -75,17 +75,18 @@ void unmap_page(void* vaddr){
 	uint64_t pdpt_index = ((uint64_t)vaddr >> 30) & 0x1FF;
 	uint64_t pml4_index = ((uint64_t)vaddr >> 39) & 0x1FF;
 	
-	uint64_t* unique_pml4 = 0;
-
-	unique_pml4 = get_unique_cpu_info()->pml4;
+	uint64_t* unique_pml4 = get_unique_cpu_info()->pml4;
 	
-	if((unique_pml4[pml4_index] & 0x1) == 0){
-		create_pml_entry(pml4_index, unique_pml4, 0x3);
+	if((unique_pml4[pml4_index] & 0x1) == 0){	
+		panic("Trying to unmap a nonexistant page in a nonexistant pml4!");
 	}
 	
-	uint64_t* pdpt;
-	pdpt = (uint64_t*)(unique_pml4[pml4_index] & ~0xFFF);
+	uint64_t* pdpt = (uint64_t*)(unique_pml4[pml4_index] & ~0xFFF);
 	
+	if((pdpt[pdpt_index] & 0x1) == 0){
+		panic("Trying to unmap a nonexistant page in a nonexistant page directory pointer table!");
+	}
+
 	uint64_t* pd = (uint64_t*)(pdpt[pdpt_index] & ~0xFFF);
 	
 	if((pd[pd_index] & 0x1) == 0){
@@ -126,4 +127,39 @@ void unmap_area(void* vaddr, uint64_t page_count){
 	for(uint64_t i = 0; i < page_count; i++){
 		unmap_page((void*)((uint64_t)vaddr + (i * 0x1000)));
 	}
+}
+
+uint8_t check_mapped(void* vaddr){
+	uint64_t pt_index = ((uint64_t)vaddr >> 12) & 0x1FF;
+	uint64_t pd_index = ((uint64_t)vaddr >> 21) & 0x1FF;
+	uint64_t pdpt_index = ((uint64_t)vaddr >> 30) & 0x1FF;
+	uint64_t pml4_index = ((uint64_t)vaddr >> 39) & 0x1FF;
+	
+	uint64_t* unique_pml4 = 0;
+
+	unique_pml4 = get_unique_cpu_info()->pml4;
+	
+	if((unique_pml4[pml4_index] & 0x1) == 0){
+		return 0;
+	}
+	
+	uint64_t* pdpt = (uint64_t*)(unique_pml4[pml4_index] & ~0xFFF);
+
+	if((pdpt[pdpt_index] & 0x1) == 0){
+		return 0;
+	}
+
+	uint64_t* pd = (uint64_t*)(pdpt[pdpt_index] & ~0xFFF);
+	
+	if((pd[pd_index] & 0x1) == 0){
+		return 0;
+	}
+		
+	uint64_t* pt = (uint64_t*)(pd[pd_index] & ~0xFFF);
+	
+	if((pt[pt_index] & 0x1) == 0){
+		return 0;
+	}
+
+	return 1;
 }

@@ -297,7 +297,6 @@ void putch(char c){
 	}
 
 	column += font_width + text_margin_x;
-
 	
 }
 

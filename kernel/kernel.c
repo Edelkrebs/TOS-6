@@ -16,6 +16,7 @@
 #include <apic.h>
 #include <cpu/cpu_info.h>
 #include <cpu/mp.h>
+#include <mm/kheap.h>
 
 void kmain(struct stivale2_struct *stivale2_struct) {
 
@@ -60,15 +61,20 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	init_vmm();
 	log("Setting up VMM\n", INFO);
-	identity_map((void*)0x0, 0x100000, 0x3);
+	identity_map((void*)0x1000, 0xFFFFF, 0x3);
 	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
-	unmap_page((void*)0x0);
 	log("Mapping pages\n", SUCCESS);
 	activate_paging();
 	log("Loading CR3\n", SUCCESS);
 
 	keyboard_init();
 	log("Initializing Keyboard driver\n", SUCCESS);
+
+	init_heap();
+	log("Initializing kernel heap\n", SUCCESS);
+
+	printhexln((uint64_t)kmalloc(20));
+	printhexln((uint64_t)kmalloc(20));
 
 	//init_smp(stivale2_struct);
 
@@ -77,17 +83,5 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 }
 
 void ap_main(){
-	println("AYOOOOOOOOOO");
-	
-	init_vmm();
-	identity_map((void*)0x0, 0x100000, 0x3);
-	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
-	unmap_page((void*)0x0);
-	activate_paging();
-
-	loadGDT();
-	loadIDT();
-	lapic_init();
-
 	while(1) asm("hlt");
 }
