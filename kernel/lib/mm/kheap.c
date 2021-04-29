@@ -2,19 +2,21 @@
 #include <mm/pmm.h>
 #include <debug.h>
 
-static uint64_t block_index = 0;
+uint64_t block_index = 0;
 
 void* kmalloc(uint64_t size){
 
     if(size == 0){
-        panic("Invalid allocation size!");
+        printf("INVALID ALLOCTION SIZE");
+        exit(-3);
     }
 
-    if(size > kheap.block_size - sizeof(heap_list_entry)){
-        panic("Couldn't allocate memory!");
+    if(size > heap.block_size - sizeof(heap_list_entry)){
+        printf("COULDNT ALLOCATE MEMORY");
+        exit(-1);
     }
 
-    for(heap_block* block = kheap.first_block; block; block = (heap_block*)block->next){
+    for(heap_block* block = heap.first_block; block; block = (heap_block*)block->next){
         for(heap_list_entry* current_entry = block->first_entry; current_entry; current_entry = current_entry->next){
             if(current_entry->size >= size + sizeof(heap_list_entry) && current_entry->free == 1){
                 heap_list_entry* hdr_ptr = (heap_list_entry*)((void*)current_entry + size + sizeof(heap_list_entry));
@@ -30,7 +32,7 @@ void* kmalloc(uint64_t size){
     }
 
     grow_heap(1);
-    kmalloc(size);
+    allocate(size);
 
     return 0;
 }
@@ -38,7 +40,7 @@ void* kmalloc(uint64_t size){
 void kfree(void* ptr){
     heap_list_entry* prev_entry = 0;
 
-    for(heap_block* block = kheap.first_block; block; block = (heap_block*)block->next){
+    for(heap_block* block = heap.first_block; block; block = (heap_block*)block->next){
         for(heap_list_entry* current_entry = block->first_entry; current_entry; current_entry = current_entry->next){
             if(current_entry == ptr){
                 if(prev_entry == 0){
@@ -55,49 +57,50 @@ void kfree(void* ptr){
             prev_entry = current_entry;
         }
     }
-    panic("Couldn't free pointer!");
+    printf("COULDNT FREE POINTER");
+    exit(-1);
 }
 
 void grow_heap(uint64_t pages){
 
-    block_index++;
-
-    for(uint64_t i = 0; i < pages; i++){
-        heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(pages);
+    /*for(uint64_t i = 0; i < pages; i++){
+        heap_list_entry* first_entry = (heap_list_entry*)malloc(pages * heap.block_size);
 
         first_entry->free = 1;
-        first_entry->size = pages * kheap.block_size - sizeof(heap_list_entry);
+        first_entry->size = pages * heap.block_size - sizeof(heap_list_entry);
         first_entry->next = 0;
 
-        kheap_blocks[block_index].first_entry = first_entry;
-        kheap_blocks[block_index].last_entry = first_entry;
-        kheap_blocks[block_index].next = 0;
+        heap_block* block = (heap_block*)malloc(heap.block_size);
+        block->first_entry = first_entry;
+        block->last_entry = first_entry;
+        block->next = 0;
 
-        for(heap_block* current_block = kheap.first_block; current_block; current_block = (heap_block*)current_block->next){
-            if(kheap_blocks[block_index].next == 0){
-                //current_block->next = kheap_blocks + block_index;
+        for(heap_block* current_block = heap.first_block; current_block; current_block = (heap_block*)current_block->next){
+            if(block->next == 0){
+                current_block->next = block;
                 return;
             }
         }
     }
 
-    panic("Couldn't resize heap!");
+    printf("COULDNT RESIZE HEAP!");
+    exit(-2);*/
 
 }
 
 void init_heap(uint64_t block_size){
-    kheap_blocks = (heap_block*)pmm_alloc(1);
-
-    heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(1);
+    heap_list_entry* first_entry = (heap_list_entry*)malloc(block_size);
 
     first_entry->free = 1;
     first_entry->size = block_size - sizeof(heap_list_entry);
     first_entry->next = 0;
 
-    kheap_blocks[0].first_entry = first_entry;
-    kheap_blocks[0].last_entry = first_entry;
-    kheap_blocks[0].next = 0;
-    kheap.first_block = kheap_blocks;
-    kheap.first_block->next = 0;
-    kheap.block_size = block_size;
+    heap_block first_block = {.first_entry = 0, .last_entry = 0, .next = 0};
+    
+    heap.first_block = (heap_block*)malloc(sizeof(heap_block));
+    *heap.first_block = first_block;
+    heap.first_block->first_entry = first_entry;
+    heap.first_block->last_entry = first_entry;
+    heap.first_block->next = 0;
+    heap.block_size = block_size;
 }

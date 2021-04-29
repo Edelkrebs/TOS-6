@@ -18,6 +18,8 @@
 #include <cpu/mp.h>
 #include <mm/kheap.h>
 
+extern uint64_t block_index;
+
 void kmain(struct stivale2_struct *stivale2_struct) {
 
 	screen_init(stivale2_struct);
@@ -73,8 +75,23 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	init_heap();
 	log("Initializing kernel heap\n", SUCCESS);
 
-	printhexln((uint64_t)kmalloc(20));
-	printhexln((uint64_t)kmalloc(20));
+	printhexln((uint64_t)kmalloc(0x20));
+	printhexln((uint64_t)kmalloc(0x20));
+	printhexln((uint64_t)kmalloc(0x20));
+
+
+	for(uint64_t i = 0; i <= block_index; i++){
+        heap_block block = kheap_blocks[i];
+		print("Current block: ");
+		printhexln(i);
+		print("Next block: ");
+		printhexln(block.next);
+		print("First entry: ");
+		printhexln((uint64_t)block.first_entry);
+		print("Last entry: ");
+		printhexln((uint64_t)block.last_entry);
+		putch('\n');
+	}
 
 	//init_smp(stivale2_struct);
 
