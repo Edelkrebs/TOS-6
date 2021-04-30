@@ -2,19 +2,19 @@
 #include <mm/pmm.h>
 #include <debug.h>
 
-uint64_t block_index = 1;
-heap_t heap;
+static uint64_t block_index = 1;
+heap_t kheap;
 heap_block* kheap_blocks;
-uint64_t max_heap_blocks = 100;
+uint64_t max_kheap_blocks = 100;
 
 void* kmalloc(uint64_t size){
 
     if(size == 0){
-        panic("INVALID ALLOCTION SIZE");
+        panic("Invalid allocation size!");
     }
 
-    if(size > heap.block_size - sizeof(heap_list_entry)){
-        panic("COULDNT ALLOCATE MEMORY");
+    if(size > kheap.block_size - sizeof(heap_list_entry)){
+        panic("Couldn't allocate memory!");
     }
 
     uint64_t temp_block_index = 0;
@@ -42,6 +42,11 @@ void* kmalloc(uint64_t size){
 }
 
 void kfree(void* ptr){
+
+    if(ptr == 0){
+        panic("Trying to free a 0 poitner!");
+    }
+
     heap_list_entry* prev_entry = 0;
 
     uint64_t temp_block_index = 0;
@@ -67,20 +72,20 @@ void kfree(void* ptr){
         }
     }
 
-    panic("COULDNT FREE POINTER");
+    panic("Couldn't free pointer!");
 }
 
 void grow_heap(uint64_t pages){
 
     if(block_index >= block_limit){
-        panic("HEAP OVERFLOW!");
+        panic("Heap overflow!");
     }
 
     for(uint64_t i = 0; i < pages; i++){
         heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(1);
 
         first_entry->free = 1;
-        first_entry->size = heap.block_size - sizeof(heap_list_entry);
+        first_entry->size = kheap.block_size - sizeof(heap_list_entry);
         first_entry->next = 0;
 
         kheap_blocks[block_index].first_entry = first_entry;
@@ -92,14 +97,14 @@ void grow_heap(uint64_t pages){
 void init_heap(){
     heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(1);
 
-    heap.block_size = 4096;
+    kheap.block_size = 4096;
     first_entry->free = 1;
-    first_entry->size = heap.block_size - sizeof(heap_list_entry);
+    first_entry->size = kheap.block_size - sizeof(heap_list_entry);
     first_entry->next = 0;
 
     kheap_blocks = (heap_block*)pmm_alloc(1);
     kheap_blocks[0].first_entry = first_entry;
     kheap_blocks[0].last_entry = first_entry;
 
-    heap.first_block = 0;
+    kheap.first_block = 0;
 }

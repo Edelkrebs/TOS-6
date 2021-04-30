@@ -19,10 +19,9 @@ typedef struct{
     uint64_t first_block;
 } heap_t;
 
-extern uint64_t block_index;
-extern heap_t heap;
+extern heap_t kheap;
 extern heap_block* kheap_blocks;
-extern uint64_t max_heap_blocks;
+extern uint64_t max_kheap_blocks;
 
 void* kmalloc(uint64_t size);
 void kfree(void* ptr);
