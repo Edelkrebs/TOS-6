@@ -71,6 +71,11 @@ void kfree(void* ptr){
 }
 
 void grow_heap(uint64_t pages){
+
+    if(block_index >= block_limit){
+        panic("HEAP OVERFLOW!");
+    }
+
     for(uint64_t i = 0; i < pages; i++){
         heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(1);
 
