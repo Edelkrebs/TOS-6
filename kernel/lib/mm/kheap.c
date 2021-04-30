@@ -7,18 +7,18 @@ uint64_t block_index = 0;
 void* kmalloc(uint64_t size){
 
     if(size == 0){
-        printf("INVALID ALLOCTION SIZE");
-        exit(-3);
+        panic("INVALID ALLOCTION SIZE");
     }
 
     if(size > heap.block_size - sizeof(heap_list_entry)){
-        printf("COULDNT ALLOCATE MEMORY");
-        exit(-1);
+        panic("COULDNT ALLOCATE MEMORY");
     }
 
     for(heap_block* block = heap.first_block; block; block = (heap_block*)block->next){
         for(heap_list_entry* current_entry = block->first_entry; current_entry; current_entry = current_entry->next){
             if(current_entry->size >= size + sizeof(heap_list_entry) && current_entry->free == 1){
+                print("AAAA ");
+                printhexln(current_entry->size);
                 heap_list_entry* hdr_ptr = (heap_list_entry*)((void*)current_entry + size + sizeof(heap_list_entry));
                 hdr_ptr->free = 1;
                 hdr_ptr->next = current_entry->next;
@@ -32,7 +32,7 @@ void* kmalloc(uint64_t size){
     }
 
     grow_heap(1);
-    allocate(size);
+    kmalloc(size);
 
     return 0;
 }
@@ -57,20 +57,20 @@ void kfree(void* ptr){
             prev_entry = current_entry;
         }
     }
-    printf("COULDNT FREE POINTER");
-    exit(-1);
+
+    panic("COULDNT FREE POINTER");
 }
 
 void grow_heap(uint64_t pages){
 
-    /*for(uint64_t i = 0; i < pages; i++){
-        heap_list_entry* first_entry = (heap_list_entry*)malloc(pages * heap.block_size);
+    for(uint64_t i = 0; i < pages; i++){
+        heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(1);
 
         first_entry->free = 1;
         first_entry->size = pages * heap.block_size - sizeof(heap_list_entry);
         first_entry->next = 0;
 
-        heap_block* block = (heap_block*)malloc(heap.block_size);
+        heap_block* block = (heap_block*)pmm_alloc(1);
         block->first_entry = first_entry;
         block->last_entry = first_entry;
         block->next = 0;
@@ -83,24 +83,22 @@ void grow_heap(uint64_t pages){
         }
     }
 
-    printf("COULDNT RESIZE HEAP!");
-    exit(-2);*/
-
+    panic("COULDNT RESIZE HEAP!");
 }
 
-void init_heap(uint64_t block_size){
-    heap_list_entry* first_entry = (heap_list_entry*)malloc(block_size);
+void init_heap(){
+    heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(1);
 
+    heap.block_size = 4096;
     first_entry->free = 1;
-    first_entry->size = block_size - sizeof(heap_list_entry);
+    first_entry->size = heap.block_size - sizeof(heap_list_entry);
     first_entry->next = 0;
 
     heap_block first_block = {.first_entry = 0, .last_entry = 0, .next = 0};
     
-    heap.first_block = (heap_block*)malloc(sizeof(heap_block));
+    heap.first_block = (heap_block*)pmm_alloc(1);
     *heap.first_block = first_block;
     heap.first_block->first_entry = first_entry;
     heap.first_block->last_entry = first_entry;
     heap.first_block->next = 0;
-    heap.block_size = block_size;
 }
