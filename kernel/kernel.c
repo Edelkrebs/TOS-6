@@ -75,23 +75,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	init_heap();
 	log("Initializing kernel heap\n", SUCCESS);
 
-	kmalloc(0xFE0);
-	kmalloc(0xFE0);
-	//kfree(e);
-
-    for(heap_block* block = heap.first_block; block; block = (heap_block*)block->next){
-        for(heap_list_entry* current_entry = block->first_entry; current_entry; current_entry = current_entry->next){
-            print("Entry: ");
-            printhexln((uint64_t)current_entry);
-            print("Free: ");
-            printhexln(current_entry->free);
-            print("Next: ");
-            printhexln((uint64_t)current_entry->next);
-            print("Size: ");
-            printhexln(current_entry->size);
-        }
-    }
-
 	//init_smp(stivale2_struct);
 
 	while(1) asm("hlt");

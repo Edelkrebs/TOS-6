@@ -12,15 +12,17 @@ typedef struct{
 typedef struct{
     heap_list_entry* first_entry;
     heap_list_entry* last_entry;
-    void* next;
 } heap_block;
 
 typedef struct{
     uint64_t block_size;
-    heap_block* first_block;
+    uint64_t first_block;
 } heap_t;
 
-heap_t heap;
+extern uint64_t block_index;
+extern heap_t heap;
+extern heap_block* kheap_blocks;
+extern uint64_t max_heap_blocks;
 
 void* kmalloc(uint64_t size);
 void kfree(void* ptr);
