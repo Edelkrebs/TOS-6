@@ -23,7 +23,8 @@ INTERNALCFLAGS  :=           \
 	-mno-sse2            \
 	-mno-red-zone		 \
 	-Werror				 \
-	-Wall
+	-Wall				 \
+	-Wextra
  
 CFILES := $(shell find ./kernel -type f -name '*.c')
 ASMFILES := $(shell find ./kernel -type f -name '*.asm')
