@@ -1,5 +1,5 @@
-#ifndef __PCI_E_H
-#define __PCI_E_H
+#ifndef __PCIE_E_HEADERS
+#define __PCIE_E_HEADERS
 
 #include <stdint.h>
 
