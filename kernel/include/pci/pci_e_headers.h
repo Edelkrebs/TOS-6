@@ -16,6 +16,10 @@ typedef struct{
     uint8_t latency_timer;
     uint8_t header_type;
     uint8_t bist;
+} __attribute__((packed)) PCIE_std_header;
+
+typedef struct{
+    PCIE_std_header std_header;
     uint32_t base_address_0;
     uint32_t base_address_1;
     uint32_t base_address_2;
@@ -35,18 +39,7 @@ typedef struct{
 } __attribute__((packed)) PCIE_header_type_0;
 
 typedef struct{
-    uint16_t vendor_id;
-    uint16_t device_id;
-    uint16_t command;
-    uint16_t status;
-    uint8_t revision_id;
-    uint8_t prog_if;
-    uint8_t subclass;
-    uint8_t class_code;
-    uint8_t cache_line_size;
-    uint8_t latency_timer;
-    uint8_t header_type;
-    uint8_t bist;
+    PCIE_std_header std_header;
     uint32_t base_address_0;
     uint32_t base_address_1;
     uint8_t primary_bus_number;
@@ -72,18 +65,7 @@ typedef struct{
 } __attribute__((packed)) PCIE_header_type_1;
 
 typedef struct{
-    uint16_t vendor_id;
-    uint16_t device_id;
-    uint16_t command;
-    uint16_t status;
-    uint8_t revision_id;
-    uint8_t prog_if;
-    uint8_t subclass;
-    uint8_t class_code;
-    uint8_t cache_line_size;
-    uint8_t latency_timer;
-    uint8_t header_type;
-    uint8_t bist;
+    PCIE_std_header std_header;
     uint32_t cardbus_socket_base_address;
     uint8_t offset_capabilities_list;
     uint8_t reserved;

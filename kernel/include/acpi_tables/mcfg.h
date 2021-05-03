@@ -14,7 +14,7 @@ typedef struct{
 
 typedef struct{
     ACPISDTheader header;
-    uint32_t reserved;
+    uint64_t reserved;
     mcfg_config_space_struct config_space_structs[];
 }__attribute__((packed)) MCFG;
 

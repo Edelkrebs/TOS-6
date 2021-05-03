@@ -1,11 +1,12 @@
 #include <mm/kheap.h>
 #include <mm/pmm.h>
+#include <mm/vmm.h>
 #include <debug.h>
 
 static uint64_t block_index = 1;
 heap_t kheap;
-heap_block* kheap_blocks;
-uint64_t max_kheap_blocks = 100;
+heap_block kheap_blocks[512];
+uint64_t max_kheap_blocks = 511;
 
 void* kmalloc(uint64_t size){
 
@@ -31,7 +32,8 @@ void* kmalloc(uint64_t size){
                 if(current_entry == block.last_entry){
                     block.last_entry = hdr_ptr;
                 }
-                return (void*)current_entry;
+
+                return (void*)current_entry + sizeof(heap_block);
             }
         }
     }
@@ -82,7 +84,13 @@ void grow_heap(uint64_t pages){
     }
 
     for(uint64_t i = 0; i < pages; i++){
-        heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(1);
+        heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(0x200);
+
+        for(uint64_t j = 0; j < kheap.block_size / 0x1000; j++){
+            if(!check_mapped(first_entry + j * 0x1000)){
+                identity_map(first_entry + j * 0x1000, 1, 0x3);
+            }
+        }
 
         first_entry->free = 1;
         first_entry->size = kheap.block_size - sizeof(heap_list_entry);
@@ -95,16 +103,22 @@ void grow_heap(uint64_t pages){
 }
 
 void init_heap(){
-    heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(1);
+    heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(0x200);
 
-    kheap.block_size = 4096;
+    kheap.block_size = 0x100000;
     first_entry->free = 1;
     first_entry->size = kheap.block_size - sizeof(heap_list_entry);
     first_entry->next = 0;
 
-    kheap_blocks = (heap_block*)pmm_alloc(1);
     kheap_blocks[0].first_entry = first_entry;
     kheap_blocks[0].last_entry = first_entry;
 
     kheap.first_block = 0;
+
+    for(uint64_t i = 0; i < kheap.block_size / 0x1000; i++){
+        if(!check_mapped(first_entry + i * 0x1000)){
+            identity_map(first_entry + i * 0x1000, 1, 0x3);
+        }
+    }
+
 }
