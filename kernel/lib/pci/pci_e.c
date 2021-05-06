@@ -93,6 +93,16 @@ void* get_pcie_capabilities_addr(uint8_t bus, uint8_t device, uint8_t function){
 
 }
 
+void* get_pcie_capability(uint8_t capability_id, uint8_t bus, uint8_t device, uint8_t function){
+    for(uint8_t next_ptr = *((uint8_t*)get_pcie_capabilities_addr(bus, device, function) + 1); next_ptr; next_ptr = *((uint8_t*)get_pcie_capabilities_addr(bus, device, function) + 1)){
+        if(*(uint8_t*)((uint64_t)get_ecm_address(bus, device, function) + next_ptr) == capability_id){
+            return (void*)((uint64_t)get_ecm_address(bus, device, function) + next_ptr);
+        } 
+    }
+
+    return 0;
+}
+
 void init_pci(){
     mcfg = (MCFG*)find_sdt_entry("MCFG");
 

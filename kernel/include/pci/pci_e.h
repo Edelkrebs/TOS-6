@@ -16,6 +16,7 @@ extern uint64_t ecm_info_struct_count;
 
 void* get_ecm_address(uint8_t bus, uint8_t device, uint8_t function); 
 void* get_pcie_capabilities_addr(uint8_t bus, uint8_t device, uint8_t function);
+void* get_pcie_capability(uint8_t capability_id, uint8_t bus, uint8_t device, uint8_t function);
 void init_pci();
 
 #endif
