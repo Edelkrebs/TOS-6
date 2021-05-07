@@ -41,7 +41,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	log("Registering GDT entries\n", SUCCESS);
 	loadGDT();
 	log("Loading GDT\n", SUCCESS);
-
 	init_bitmap(stivale2_struct);
 	log("Initializing bitmap\n", SUCCESS);
 	populate_bitmap();

@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <mm/vmm.h>
 #include <mm/kheap.h>
+#include <pci/capabilities/msi_capab.h>
 
 MCFG* mcfg = 0;
 ECM_info_struct* ecm_info_structs;
@@ -93,14 +94,18 @@ void* get_pcie_capabilities_addr(uint8_t bus, uint8_t device, uint8_t function){
 
 }
 
-void* get_pcie_capability(uint8_t capability_id, uint8_t bus, uint8_t device, uint8_t function){
+MSI_capability* get_pcie_capability(uint8_t capability_id, uint8_t bus, uint8_t device, uint8_t function){
     for(uint8_t next_ptr = *((uint8_t*)get_pcie_capabilities_addr(bus, device, function) + 1); next_ptr; next_ptr = *((uint8_t*)get_pcie_capabilities_addr(bus, device, function) + 1)){
         if(*(uint8_t*)((uint64_t)get_ecm_address(bus, device, function) + next_ptr) == capability_id){
-            return (void*)((uint64_t)get_ecm_address(bus, device, function) + next_ptr);
+            return (MSI_capability*)((uint64_t)get_ecm_address(bus, device, function) + next_ptr);
         } 
     }
 
     return 0;
+}
+
+void set_msi_address(MSI_capability* data, uint8_t vector, uint32_t processor, uint8_t edgetrigger, uint8_t deassert){
+    *((uint64_t*)data->message_address) = vector | (edgetrigger == 1 ? 0 : (1 << 15)) | (deassert == 1 ? 0 : (1 << 14));
 }
 
 void init_pci(){
