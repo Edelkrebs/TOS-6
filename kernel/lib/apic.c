@@ -160,6 +160,15 @@ uint32_t read_ioapic_register(uint32_t ioapic_id, uint32_t reg){
 	return -1;
 }
 
+void redirect_ioapic_irq(uint32_t ioapic, uint8_t gsi, uint8_t dest, uint64_t flags){
+	uint32_t lower_flags = (uint32_t) flags;
+	uint32_t upper_flags = flags & ~0xFFFF;
+	if(dest < 32) panic("Trying to redirect IOAPIC GSI to ISA interrupt!");
+	lower_flags |= dest;
+	write_ioapic_register(ioapics_info[ioapic].ioapic_id, IOREDTBL_BASE_REGISTER + gsi * 2, lower_flags);
+	write_ioapic_register(ioapics_info[ioapic].ioapic_id, IOREDTBL_BASE_REGISTER + gsi * 2 + 1, upper_flags);
+}
+
 static void init_ioapic(uint32_t ioapic){
 	for(uint64_t i = 0; i < entry_type_2_index; i++){
 		uint32_t lower_flags = 0;
@@ -170,9 +179,7 @@ static void init_ioapic(uint32_t ioapic){
 		if(entry_types_2[i]->flags & 0x8){
 			lower_flags |= 0x8000;
 		}
-		lower_flags |= 32 + (uint8_t)entry_types_2[i]->irq_source;
-		write_ioapic_register(ioapics_info[ioapic].ioapic_id, IOREDTBL_BASE_REGISTER + entry_types_2[i]->global_system_interrupt * 2, lower_flags);
-		write_ioapic_register(ioapics_info[ioapic].ioapic_id, IOREDTBL_BASE_REGISTER + entry_types_2[i]->global_system_interrupt * 2 + 1, upper_flags);
+		redirect_ioapic_irq(ioapic, entry_types_2[i]->global_system_interrupt, 32 + entry_types_2[i]->irq_source, (uint64_t)upper_flags << 32 | lower_flags);
 	}
 
 	for(uint64_t i = 0; i < 16; i++){
@@ -181,11 +188,10 @@ static void init_ioapic(uint32_t ioapic){
 				goto end;
 			}
 		}
-		uint32_t lower_flags = (uint8_t)(32 + i);
-		uint32_t upper_flags = 0;
+		uint64_t flags = 0;
 
-		write_ioapic_register(ioapics_info[ioapic].ioapic_id, IOREDTBL_BASE_REGISTER + i * 2, lower_flags);
-		write_ioapic_register(ioapics_info[ioapic].ioapic_id, IOREDTBL_BASE_REGISTER + i * 2 + 1, upper_flags);
+		redirect_ioapic_irq(ioapics_info[ioapic].ioapic_id, i, 32 + i, flags);
+	
 end:
 		continue;
 	}
