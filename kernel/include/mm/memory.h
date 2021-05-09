@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-void memcpy(uint8_t* src, uint8_t* dest, uint64_t count);
-uint8_t memcmp(uint8_t* src, uint8_t* dest, uint64_t count);
+void memcpy(void* src, void* dest, uint64_t count);
+uint8_t memcmp(void* src, void* dest, uint64_t count);
+void memset(void* src, uint8_t value, uint64_t count);
 
 #endif
