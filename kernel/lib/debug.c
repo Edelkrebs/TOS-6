@@ -272,7 +272,7 @@ void cls(){
 	}
 	row = text_margin_x;
 	column = text_margin_y;
-
+}
 
 void putch(char c){
 
