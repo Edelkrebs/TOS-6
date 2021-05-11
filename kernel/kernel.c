@@ -17,6 +17,7 @@
 #include <cpu/cpu_info.h>
 #include <cpu/mp.h>
 #include <mm/kheap.h>
+#include <driver/ata.h>
 #include <pci/pci_e.h>
 
 extern uint64_t block_index;
@@ -76,6 +77,9 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	init_heap();
 	log("Initializing kernel heap\n", SUCCESS);
+
+	init_ata();
+	log("Initializing ATA driver\n", SUCCESS);
 
 	init_pci();
 	log("Initializing PCI\n", SUCCESS);
