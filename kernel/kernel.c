@@ -17,7 +17,6 @@
 #include <cpu/cpu_info.h>
 #include <cpu/mp.h>
 #include <mm/kheap.h>
-#include <driver/ata.h>
 #include <pci/pci_e.h>
 
 extern uint64_t block_index;
@@ -25,11 +24,9 @@ extern uint64_t block_index;
 void kmain(struct stivale2_struct *stivale2_struct) {
 
 	screen_init(stivale2_struct);
-	log("Initializing screen\n", INFO);
 
     setup_flags();
 	log("Setting flags\n", INFO);
-
 
 	validate_rsdp(stivale2_struct); 
 	log("Validating the Root System Description Pointer\n", INFO);
@@ -77,9 +74,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	init_heap();
 	log("Initializing kernel heap\n", SUCCESS);
-
-	init_ata();
-	log("Initializing ATA driver\n", SUCCESS);
 
 	init_pci();
 	log("Initializing PCI\n", SUCCESS);
