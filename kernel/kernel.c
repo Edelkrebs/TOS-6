@@ -18,6 +18,7 @@
 #include <cpu/mp.h>
 #include <mm/kheap.h>
 #include <pci/pci_e.h>
+#include <driver/ahci.h>
 
 extern uint64_t block_index;
 
@@ -77,6 +78,9 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	init_pci();
 	log("Initializing PCI\n", SUCCESS);
+
+	init_ahci();
+	log("Initializing AHCI driver\n", SUCCESS);
 
 	//init_smp(stivale2_struct);
 
