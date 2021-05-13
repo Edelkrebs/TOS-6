@@ -20,7 +20,7 @@ typedef struct{
 } heap_t;
 
 extern heap_t kheap;
-extern heap_block* kheap_blocks;
+extern heap_block kheap_blocks[512];
 extern uint64_t max_kheap_blocks;
 
 void* kmalloc(uint64_t size);

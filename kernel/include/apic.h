@@ -57,6 +57,7 @@ void write_lapic_register();
 void lapic_init();
 
 void write_ioapic_register(uint32_t ioapic_id, uint32_t reg, uint32_t value);
+void redirect_ioapic_irq(uint32_t ioapic, uint8_t gsi, uint8_t dest, uint64_t flags);
 void init_ioapics();
 
 #endif

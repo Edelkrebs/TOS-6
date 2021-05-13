@@ -28,7 +28,6 @@ void warn(const char* str);
 void error(const char* str);
 void panic(const char* message);
 
-
 static inline void assert(uint32_t condition, const char* message){
 	if(condition) panic(message);
 }
