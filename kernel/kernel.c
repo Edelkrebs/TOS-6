@@ -18,7 +18,7 @@
 #include <cpu/mp.h>
 #include <mm/kheap.h>
 #include <pci/pci_e.h>
-#include <driver/ahci.h>
+#include <driver/ahci/ahci.h>
 
 extern uint64_t block_index;
 

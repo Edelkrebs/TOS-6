@@ -140,9 +140,15 @@ PCIE_device_struct get_pcie_device(uint8_t class, uint8_t subclass, uint8_t prog
                 device_struct.function = result >> 8;
                 device_struct.ecma = get_ecm_address(curr_bus, (uint8_t) result, result >> 8);
                 device_struct.segment_group = ecm_info_structs[i].pci_segment_group;
+                device_struct.error = 0;
+                return device_struct;
+            }else{
+                device_struct.error = 1;
+                return device_struct;
             }
         }
     }
+    panic("Something went wrong trying to find PCIE device!");
     return device_struct;
 }
 
