@@ -5,10 +5,8 @@
 
 typedef struct{
     ACPISDTheader header;
-    uint8_t comparator_count:5;
-    uint8_t counter_size:1;
-    uint8_t reserved:1;
-    uint8_t legacy_replacement:1;
+    uint8_t hw_revision_id;
+    uint8_t comparator_count;
     uint16_t pci_vendor_id;
     uint8_t address_space_id;    // 0 - system memory, 1 - system I/O
     uint8_t register_bit_width;
