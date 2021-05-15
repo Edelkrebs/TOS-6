@@ -28,6 +28,7 @@ typedef struct{
 extern volatile HPET* hpet;
 extern volatile HPET_registers* hpet_registers;
 extern uint16_t minimal_tick;
+extern uint32_t frequency;
 
 void init_hpet();
 

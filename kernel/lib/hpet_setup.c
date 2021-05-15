@@ -4,6 +4,7 @@
 
 volatile HPET* hpet;
 volatile HPET_registers* hpet_registers;
+uint32_t frequency;
 uint16_t minimal_tick;
 
 void init_hpet(){
@@ -12,6 +13,7 @@ void init_hpet(){
     minimal_tick = hpet->minim_ticks;
 
     hpet_registers = (volatile HPET_registers*)(hpet->address);
+    frequency = hpet_registers->capabilities >> 32;
 
     hpet_registers->config = 0x1;
 
