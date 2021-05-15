@@ -20,6 +20,7 @@
 #include <pci/pci_e.h>
 #include <driver/ahci/ahci.h>
 #include <hpet_setup.h>
+#include <timer.h>
 
 extern uint64_t block_index;
 
@@ -37,6 +38,8 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	init_hpet();
 	log("Initializing HPET\n", SUCCESS);
+	init_timer();
+	log("Initializing global timer\n", INFO);
 
 	registerGDTentry(0, 0, 0, 0);	
 	registerGDTentry(1, 0, 0, 0b1001101000100000);	
