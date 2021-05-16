@@ -1,6 +1,7 @@
 #include <driver/ahci/ahci.h>
 #include <debug.h>
 #include <timer.h>
+#include <mm/pmm.h>
 
 PCIE_device_struct ahci_device;
 volatile HBA_memory_space* hba_memory_space;
@@ -16,10 +17,9 @@ static void bios_handoff(){
     while((*ticks_since_boot) - current_ticks <= femtos_to_ticks(nanos_to_femtos(25000000))){
         if(((hba_memory_space->global_registers.os_handoff_control_status >> 4) & 0x1) == 1){
             sleep(seconds_to_nanos(2));
-            goto end;
+            break;
         }
     }
-end:
     current_ticks = *ticks_since_boot;
     while((*ticks_since_boot) - current_ticks <= femtos_to_ticks(nanos_to_femtos(25000000))){
         if(((hba_memory_space->global_registers.os_handoff_control_status >> 4) & 0x1) == 1){
@@ -33,7 +33,34 @@ void enable_ahci(){
 }
 
 void set_hba_port_idle(uint64_t port){
-    hba_memory_space->port_registers[port].command_status &= ~0xC011;
+    if((hba_memory_space->port_registers[port].command_status & 0xC011) == 0){
+        return;
+    }
+
+    hba_memory_space->port_registers[port].command_status &= ~0x1;
+
+    //Wait 500 milliseconds for PxCMD.CR to return 0
+    uint64_t current_ticks = *ticks_since_boot;
+    while((*ticks_since_boot) - current_ticks <= femtos_to_ticks(nanos_to_femtos(500000000))){
+        if((hba_memory_space->port_registers[port].command_status & 0x8000) == 0){
+            break;
+        }
+    }
+
+    if((hba_memory_space->port_registers[port].command_status & 0x10) != 0){
+        hba_memory_space->port_registers[port].command_status &= ~0x10;
+        current_ticks = *ticks_since_boot;
+        //Wait 500 milliseconds for PxCMD.FR to return 0
+        while((*ticks_since_boot) - current_ticks <= femtos_to_ticks(nanos_to_femtos(500000000))){
+            if((hba_memory_space->port_registers[port].command_status & 0x4000) == 0){
+                break;
+            }
+        }
+    }
+
+    if((hba_memory_space->port_registers[port].command_status & 0xC000) != 0){
+        panic("Couldn't idle AHCI port!");
+    }
 }
 
 void reset_hba(){
@@ -57,7 +84,14 @@ void reset_hba(){
 }
 
 void init_hba_port(uint64_t port){
-    
+    uint64_t command_list_location = (uint64_t)pmm_calloc(1);
+    uint64_t fis_receive_location = (uint64_t)pmm_calloc(1);
+
+    hba_memory_space->port_registers[port].fis_base = (uint32_t) fis_receive_location;
+    hba_memory_space->port_registers[port].fis_base_upper = (uint32_t)(fis_receive_location >> 32);
+
+    hba_memory_space->port_registers[port].command_list_base = (uint32_t) command_list_location;
+    hba_memory_space->port_registers[port].command_list_base_upper = (uint32_t)(command_list_location >> 32);
 }
 
 void init_ahci(){
@@ -68,6 +102,10 @@ void init_ahci(){
 
     hba_ecm_base = (volatile PCIE_header_type_0*)get_ecm_address(ahci_device.bus, ahci_device.device, ahci_device.function);
     hba_memory_space = (volatile HBA_memory_space*)((uint64_t)(((PCIE_header_type_0*)hba_ecm_base)->base_address_5) & 0xFFFFFFF0);
+
+    if((hba_memory_space->global_registers.host_capabilities & (1 << 31)) == 0){
+        panic("HBA doesn't support 64 bit addressing!");
+    }
 
     reset_hba();
 

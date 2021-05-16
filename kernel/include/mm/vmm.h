@@ -1,6 +1,8 @@
 #ifndef __VMM_H
 #define __VMM_H
 
+#define VM_OFFSET 0xffffffff80000000
+
 #include <stdint.h>
 
 extern uint64_t* pml4;

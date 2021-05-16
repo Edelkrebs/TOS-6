@@ -112,6 +112,14 @@ void* pmm_alloc(uint64_t pages){
 	return (void*)0;
 }
 
+void* pmm_calloc(uint64_t pages){
+	void* result = pmm_alloc(pages);
+	for(uint64_t i = 0; i < pages * PMM_PAGE_SIZE; i++){
+		((uint8_t*)result)[i] = 0;
+	}
+	return result;
+}
+
 void pmm_free(void* paddr, uint64_t pages){
 	for(uint64_t i = 0; i < pages; i++){
 		bitmap_clearb((uint64_t) paddr / PMM_PAGE_SIZE + i);
