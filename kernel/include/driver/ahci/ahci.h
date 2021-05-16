@@ -6,10 +6,15 @@
 #include <pci/pci_e_headers.h>
 
 extern PCIE_device_struct ahci_device;
-extern HBA_memory_space* hba_memory_space;
+extern volatile HBA_memory_space* hba_memory_space;
 extern uint32_t ahci_ports_implemented;
-extern PCIE_header_type_0* hba_ecm_base;
+extern volatile PCIE_header_type_0* hba_ecm_base;
 
+void enable_ahci();
+void set_hba_port_idle(uint64_t port);
+void reset_hba();
+
+void init_hba_port(uint64_t port);
 void init_ahci();
 
 #endif
