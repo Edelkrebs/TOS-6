@@ -8,6 +8,7 @@
 extern PCIE_device_struct ahci_device;
 extern volatile HBA_memory_space* hba_memory_space;
 extern uint32_t ahci_ports_implemented;
+extern uint32_t ahci_ports_devices_attached;
 extern volatile PCIE_header_type_0* hba_ecm_base;
 
 void enable_ahci();

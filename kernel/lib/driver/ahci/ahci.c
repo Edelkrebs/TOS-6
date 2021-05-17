@@ -6,6 +6,7 @@
 PCIE_device_struct ahci_device;
 volatile HBA_memory_space* hba_memory_space;
 uint32_t ahci_ports_implemented;
+uint32_t ahci_ports_devices_attached;
 volatile PCIE_header_type_0* hba_ecm_base;
 
 static void bios_handoff(){
@@ -92,6 +93,39 @@ void init_hba_port(uint64_t port){
 
     hba_memory_space->port_registers[port].command_list_base = (uint32_t) command_list_location;
     hba_memory_space->port_registers[port].command_list_base_upper = (uint32_t)(command_list_location >> 32);
+
+    hba_memory_space->port_registers[port].command_status |= 0x10;
+
+    if((hba_memory_space->global_registers.host_capabilities & 8000000) != 0){
+        hba_memory_space->port_registers[port].command_status |= 0x2;
+    }
+
+    uint64_t current_ticks = *ticks_since_boot;
+    while((*ticks_since_boot) - current_ticks <= femtos_to_ticks(nanos_to_femtos(1000000))){
+        if((hba_memory_space->port_registers[port].sata_status & 0xF) == 3){
+            break;
+        }
+    }
+
+    if((hba_memory_space->port_registers[port].sata_status & 0xF) != 3){
+        return;
+    }
+
+    hba_memory_space->port_registers[port].sata_error = ~0x0;
+
+    while((*ticks_since_boot) - current_ticks <= femtos_to_ticks(nanos_to_femtos(25000000))){
+        if((hba_memory_space->port_registers[port].task_file_data & 0x88) == 0){
+            break;
+        }
+    }
+
+    if((hba_memory_space->port_registers[port].task_file_data & 0x88) != 0){
+        panic("Couldn't initialize HBA due to non-resetting flags!");
+    }
+
+    printhexln(hba_memory_space->port_registers[port].task_file_data);
+
+    ahci_ports_devices_attached |= 1 << (port - 1);
 }
 
 void init_ahci(){
@@ -110,6 +144,12 @@ void init_ahci(){
     reset_hba();
 
     enable_ahci();
+
+    for(uint32_t i = 0; i < 32; i++){
+        if(((hba_memory_space->global_registers.ports_implemented >> i) & 0x1) == 1){       
+            init_hba_port(i);
+        }
+    }
 }
 
 /*

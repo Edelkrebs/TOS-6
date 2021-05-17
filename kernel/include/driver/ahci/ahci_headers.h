@@ -141,6 +141,18 @@ typedef struct{
 } __attribute__((packed)) DATA_BI_FIS;
 
 typedef struct{
+    DMA_setup_BI_FIS DMA_setup_FIS;
+    uint32_t reserved;
+    PIO_D2H_FIS PIO_setup_FIS;
+    uint8_t reserved2[0xC];
+    Register_D2H_FIS D2H_register_FIS;
+    uint32_t reserved3;
+    Set_device_bits_D2H_FIS set_device_bit_FIS;
+    uint8_t unknown_FIS[64];
+    uint8_t reserved4[0x5F];
+} __attribute__((packed)) AHCI_recevied_fis_memory_area;
+
+typedef struct{
     uint32_t host_capabilities;
     uint32_t global_host_control;
     uint32_t interrupt_status;
@@ -162,6 +174,7 @@ typedef struct{
     uint32_t interrupt_status;
     uint32_t interrupt_enable;
     uint32_t command_status;
+    uint32_t reserved;
     uint32_t task_file_data;
     uint32_t signature;
     uint32_t sata_status;
@@ -169,17 +182,20 @@ typedef struct{
     uint32_t sata_error;
     uint32_t sata_active;
     uint32_t command_issue;
-    uint32_t sata_notification;
+    uint16_t sata_notification;
+    uint16_t reserved2;
     uint32_t fis_based_switching_control;
     uint32_t device_sleep;
-    uint64_t vendor_specific;
+    uint8_t reserved_3[0x70 - 0x48];
+    uint8_t vendor_specific[0x80 - 0x70];
 } __attribute__((packed)) AHCI_port_register;
 
 typedef struct{
     AHCI_generic_host_control global_registers;
-    uint8_t reserved[0x74];
-    uint8_t vendor[0x60];
-    AHCI_port_register port_registers[];
+    uint8_t reserved[0x60 - 0x2C];
+    uint8_t nvmhci_reserved[0xA0 - 0x60];
+    uint8_t vendor_specific_registers[0x100 - 0xA0];
+    AHCI_port_register port_registers[32];
 } __attribute__((packed)) HBA_memory_space;
 
 #endif
