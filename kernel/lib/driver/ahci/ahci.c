@@ -30,6 +30,7 @@ static void bios_handoff(){
 }
 
 void enable_ahci(){
+    // TODO: Check if CAP.SAM = 0, if so, skip over this as it is not needed
     hba_memory_space->global_registers.global_host_control |= 1 << 31;
 }
 

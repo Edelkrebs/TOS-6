@@ -198,4 +198,31 @@ typedef struct{
     AHCI_port_register port_registers[32];
 } __attribute__((packed)) HBA_memory_space;
 
+typedef struct{
+    uint16_t flags;
+    uint16_t physical_region_descriptor_table_length;
+    uint32_t PRD_byte_count;
+    uint32_t command_table_descriptor_base;
+    uint32_t command_table_descriptor_base_upper;
+    uint32_t reserved[4];
+} __attribute__((packed)) HBA_command_header;
+
+typedef struct{
+    HBA_command_header command_headers[32];
+} __attribute__((packed)) HBA_command_list;
+
+typedef struct{
+    uint32_t data_base;
+    uint32_t data_upper;
+    uint32_t reserved;
+    uint32_t byte_count_interrupt_on_complete;
+} __attribute__((packed)) HBA_prdt_item;
+
+typedef struct{
+    uint8_t command_FIS[64];
+    uint32_t atapi_command[4];
+    uint8_t reserved[0x30];
+    HBA_prdt_item prdt[65535];
+} __attribute__((packed)) HBA_command_table;
+
 #endif
