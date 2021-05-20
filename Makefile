@@ -39,7 +39,7 @@ run_uefi: uefi_img
 
 image: all
 
-	rm image.hdd
+	-rm image.hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=image.hdd
 	 
 	parted -s image.hdd mklabel gpt
