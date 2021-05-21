@@ -8,6 +8,7 @@ volatile HBA_memory_space* hba_memory_space;
 uint32_t ahci_ports_implemented;
 uint32_t ahci_ports_devices_attached;
 volatile PCIE_header_type_0* hba_ecm_base;
+volatile HBA_command_list* command_list;
 
 static void bios_handoff(){
     hba_memory_space->global_registers.os_handoff_control_status |= 0x2;
@@ -85,9 +86,22 @@ void reset_hba(){
     }
 }
 
+uint8_t send_ahci_command(Register_H2D_FIS* command_fis, uint16_t prd_count, HBA_prdt_item* prdtp){
+    for(uint32_t port = 0; port < 32; port++){
+        for(uint32_t tag = 0; tag < 32; tag++){
+            if((((hba_memory_space->port_registers[port].command_issue >> tag) & 0x1) == 0) && (((hba_memory_space->port_registers[port].sata_active >> tag) & 0x1) == 0)){
+                command_list->command_headers[tag].flags = (5 & 0xF) | (prd_count << 16);
+                command_list->command_headers[tag].physical_region_descriptor_table_length = prd_count * sizeof(HBA_prdt_item);
+            } 
+        }
+    }
+}
+
 void init_hba_port(uint64_t port){
     uint64_t command_list_location = (uint64_t)pmm_calloc(1);
     uint64_t fis_receive_location = (uint64_t)pmm_calloc(1);
+
+    command_list = (HBA_command_list*) command_list_location;
 
     hba_memory_space->port_registers[port].fis_base = (uint32_t) fis_receive_location;
     hba_memory_space->port_registers[port].fis_base_upper = (uint32_t)(fis_receive_location >> 32);
@@ -145,6 +159,8 @@ void init_ahci(){
     reset_hba();
 
     enable_ahci();
+
+    printhexln(sizeof(Register_H2D_FIS));
 
     for(uint32_t i = 0; i < 32; i++){
         if(((hba_memory_space->global_registers.ports_implemented >> i) & 0x1) == 1){       

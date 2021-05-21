@@ -222,7 +222,7 @@ typedef struct{
     uint8_t command_FIS[64];
     uint32_t atapi_command[4];
     uint8_t reserved[0x30];
-    HBA_prdt_item prdt[65535];
+    HBA_prdt_item prdt[];
 } __attribute__((packed)) HBA_command_table;
 
 #endif
