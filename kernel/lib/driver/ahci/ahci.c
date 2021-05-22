@@ -8,7 +8,10 @@ volatile HBA_memory_space* hba_memory_space;
 uint32_t ahci_ports_implemented;
 uint32_t ahci_ports_devices_attached;
 volatile PCIE_header_type_0* hba_ecm_base;
-volatile HBA_command_list* command_list;
+
+HBA_command_table ahci_command_tables[32];
+
+volatile HBA_command_list* ahci_command_list;
 
 static void bios_handoff(){
     hba_memory_space->global_registers.os_handoff_control_status |= 0x2;
@@ -86,22 +89,32 @@ void reset_hba(){
     }
 }
 
-uint8_t send_ahci_command(Register_H2D_FIS* command_fis, uint16_t prd_count, HBA_prdt_item* prdtp){
-    for(uint32_t port = 0; port < 32; port++){
-        for(uint32_t tag = 0; tag < 32; tag++){
-            if((((hba_memory_space->port_registers[port].command_issue >> tag) & 0x1) == 0) && (((hba_memory_space->port_registers[port].sata_active >> tag) & 0x1) == 0)){
-                command_list->command_headers[tag].flags = (5 & 0xF) | (prd_count << 16);
-                command_list->command_headers[tag].physical_region_descriptor_table_length = prd_count * sizeof(HBA_prdt_item);
-            } 
-        }
+uint8_t send_ahci_command(uint8_t port, Register_H2D_FIS* command_fis, uint16_t prd_count, HBA_prdt_item* prdtp, uint16_t flags){
+    for(uint32_t tag = 0; tag < 32; tag++){
+        if((((hba_memory_space->port_registers[port].command_issue >> tag) & 0x1) == 0) && (((hba_memory_space->port_registers[port].sata_active >> tag) & 0x1) == 0)){
+            ahci_command_list->command_headers[tag].flags = flags;
+            ahci_command_list->command_headers[tag].physical_region_descriptor_table_length = prd_count * sizeof(HBA_prdt_item);
+            ahci_command_list->command_headers[tag].command_table_descriptor_base = ((uint64_t)&ahci_command_tables[tag]) & 0xFFFFFFFF;
+            ahci_command_list->command_headers[tag].command_table_descriptor_base_upper = ((uint64_t)&ahci_command_tables[tag]) >> 32;
+            ahci_command_tables[tag].command_FIS = *command_fis;
+            for(uint16_t prd_index = 0; prd_index < prd_count; prd_index++){
+                ahci_command_tables[tag].prdt[prd_index] = prdtp[prd_index];
+            }
+            return 1;
+        } 
     }
+    return 0;
 }
+
+/*void ahci_read(uint8_t port, uint64_t start_lba, uint32_t count, uint16_t* data){
+    Register_H2D_FIS command_fis = {.fis_type = 0x27, .c = 1, .command = READ_DMA_EXT,}
+}*/
 
 void init_hba_port(uint64_t port){
     uint64_t command_list_location = (uint64_t)pmm_calloc(1);
     uint64_t fis_receive_location = (uint64_t)pmm_calloc(1);
 
-    command_list = (HBA_command_list*) command_list_location;
+    ahci_command_list = (HBA_command_list*) command_list_location;
 
     hba_memory_space->port_registers[port].fis_base = (uint32_t) fis_receive_location;
     hba_memory_space->port_registers[port].fis_base_upper = (uint32_t)(fis_receive_location >> 32);

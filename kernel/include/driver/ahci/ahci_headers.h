@@ -4,6 +4,10 @@
 #include <stdint.h>
 
 typedef enum{
+    READ_DMA_EXT = 0x25;
+} ATA_commands;
+
+typedef enum{
     REG_H2D_FIS = 0x27,
     REG_D2H_FIS = 0x34,
     DMA_ACTIVATE_FIS_D2H = 0x39,
@@ -219,7 +223,7 @@ typedef struct{
 } __attribute__((packed)) HBA_prdt_item;
 
 typedef struct{
-    uint8_t command_FIS[64];
+    Register_H2D_FIS command_FIS;
     uint32_t atapi_command[4];
     uint8_t reserved[0x30];
     HBA_prdt_item prdt[];
