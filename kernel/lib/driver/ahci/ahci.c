@@ -2,6 +2,7 @@
 #include <debug.h>
 #include <timer.h>
 #include <mm/pmm.h>
+#include <mm/kheap.h>
 
 PCIE_device_struct ahci_device;
 volatile HBA_memory_space* hba_memory_space;
@@ -12,6 +13,11 @@ volatile PCIE_header_type_0* hba_ecm_base;
 HBA_command_table ahci_command_tables[32];
 
 volatile HBA_command_list* ahci_command_list;
+
+
+static inline uint64_t round_up(uint64_t number, uint64_t alignment){
+	return number % alignment == 0 ? number : (number + (alignment - number % alignment));
+}
 
 static void bios_handoff(){
     hba_memory_space->global_registers.os_handoff_control_status |= 0x2;
@@ -100,15 +106,34 @@ uint8_t send_ahci_command(uint8_t port, Register_H2D_FIS* command_fis, uint16_t 
             for(uint16_t prd_index = 0; prd_index < prd_count; prd_index++){
                 ahci_command_tables[tag].prdt[prd_index] = prdtp[prd_index];
             }
+            hba_memory_space->port_registers[port].command_issue |= 1 << tag;
             return 1;
         } 
     }
     return 0;
 }
 
-/*void ahci_read(uint8_t port, uint64_t start_lba, uint32_t count, uint16_t* data){
-    Register_H2D_FIS command_fis = {.fis_type = 0x27, .c = 1, .command = READ_DMA_EXT,}
-}*/
+void ahci_read(uint8_t port, uint64_t start_lba, uint16_t count, uint16_t* data){
+    Register_H2D_FIS command_fis = {.fis_type = 0x27, .c = 1, .command = READ_DMA_EXT, .lba_low = (uint8_t) start_lba, .control = 0,
+                                    .lba_mid = (uint8_t)(start_lba >> 8), .lba_high = (uint8_t)(start_lba >> 16), .exp_lba_low = (uint8_t)(start_lba >> 24),
+                                    .exp_lba_mid = (uint8_t)(start_lba >> 32), .exp_lba_high = start_lba >> 40, .device = 1 << 6, .features_low = 0,
+                                    .features_high = 0, .pm_port = 0, .count = count, .icc = 0};
+    
+    uint16_t prd_count = round_up(count, 0x10) / 0x10; 
+    HBA_prdt_item* prdt = (HBA_prdt_item*)kmalloc((prd_count - 1) * sizeof(HBA_prdt_item));
+    for(uint16_t i = 0; i < prd_count - 1; i++){
+        prdt[i].byte_count_interrupt_on_complete = (1 << 64) | 0x1FFF;
+        prdt[i].data_base = (uint32_t)((uint64_t)data);
+        prdt[i].data_upper = ((uint64_t)data) >> 32;
+        data += 0x1000;
+        count -= 0x10;
+    }
+    prdt[prd_count - 1].byte_count_interrupt_on_complete = (1 << 64) | ((count << 9) - 1); 
+    prdt[prd_count - 1].data_base = (uint32_t)((uint64_t)data);
+    prdt[prd_count - 1].data_upper = ((uint64_t)data) >> 32;
+    
+    send_ahci_command(port, &command_fis, prd_count, prdt, 0);
+}
 
 void init_hba_port(uint64_t port){
     uint64_t command_list_location = (uint64_t)pmm_calloc(1);
