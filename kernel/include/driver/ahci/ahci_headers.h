@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 typedef enum{
-    READ_DMA_EXT = 0x25;
+    READ_DMA_EXT = 0x25
 } ATA_commands;
 
 typedef enum{

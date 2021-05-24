@@ -106,6 +106,13 @@ uint8_t send_ahci_command(uint8_t port, Register_H2D_FIS* command_fis, uint16_t 
             for(uint16_t prd_index = 0; prd_index < prd_count; prd_index++){
                 ahci_command_tables[tag].prdt[prd_index] = prdtp[prd_index];
             }
+
+            uint32_t i = 0;
+            while((hba_memory_space->port_registers[port].task_file_data & 0x90) != 0 && i < 100000);
+            if(i <= 100000){
+                panic("HBA port got stuck while trying to send AHCI command!\n");
+            }
+
             hba_memory_space->port_registers[port].command_issue |= 1 << tag;
             return 1;
         } 
@@ -122,17 +129,17 @@ void ahci_read(uint8_t port, uint64_t start_lba, uint16_t count, uint16_t* data)
     uint16_t prd_count = round_up(count, 0x10) / 0x10; 
     HBA_prdt_item* prdt = (HBA_prdt_item*)kmalloc((prd_count - 1) * sizeof(HBA_prdt_item));
     for(uint16_t i = 0; i < prd_count - 1; i++){
-        prdt[i].byte_count_interrupt_on_complete = (1 << 64) | 0x1FFF;
+        prdt[i].byte_count_interrupt_on_complete = ((uint64_t)1 << 63) | 0x1FFF;
         prdt[i].data_base = (uint32_t)((uint64_t)data);
         prdt[i].data_upper = ((uint64_t)data) >> 32;
-        data += 0x1000;
+        data += 0x2000;
         count -= 0x10;
     }
-    prdt[prd_count - 1].byte_count_interrupt_on_complete = (1 << 64) | ((count << 9) - 1); 
+    prdt[prd_count - 1].byte_count_interrupt_on_complete = (1 << 63) | ((count << 9) - 1); 
     prdt[prd_count - 1].data_base = (uint32_t)((uint64_t)data);
     prdt[prd_count - 1].data_upper = ((uint64_t)data) >> 32;
     
-    send_ahci_command(port, &command_fis, prd_count, prdt, 0);
+    while(!send_ahci_command(port, &command_fis, prd_count, prdt, 0));
 }
 
 void init_hba_port(uint64_t port){
