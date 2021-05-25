@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stivale2.h>
 
-struct stivale2_struct_tag_memmap* memmap;
+extern struct stivale2_struct_tag_memmap* memmap;
 
 extern uint8_t _kernel_start[];
 extern uint8_t _kernel_end[];

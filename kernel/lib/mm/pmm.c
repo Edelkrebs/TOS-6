@@ -3,6 +3,8 @@
 
 uint16_t number_of_entrys; 
 
+struct stivale2_struct_tag_memmap* memmap;
+
 uint8_t* bitmap;
 uint64_t block_size;
 uint64_t block_limit;

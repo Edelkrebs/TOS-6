@@ -6,6 +6,8 @@
 
 void* sdt = NULL;
 
+SDT_T sdt_type;
+
 uint64_t sdt_entry_count = 0;
 
 void* find_sdt_entry(char* signature){
