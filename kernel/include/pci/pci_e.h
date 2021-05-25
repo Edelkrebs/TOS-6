@@ -15,6 +15,7 @@ typedef struct{
     uint8_t bus;
     uint8_t device;
     uint8_t function;
+    uint8_t error;
     void* ecma;
 } PCIE_device_struct;
 
