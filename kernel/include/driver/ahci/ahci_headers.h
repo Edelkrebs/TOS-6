@@ -27,9 +27,7 @@ typedef enum{
 
 typedef struct{
     uint8_t fis_type;
-    uint8_t pm_port : 4;
-    uint8_t reserved : 3;
-    uint8_t c : 1;
+    uint8_t info;
     uint8_t command;
     uint8_t features_low;
     uint8_t lba_low;
@@ -43,8 +41,7 @@ typedef struct{
     uint16_t count;
     uint8_t icc;
     uint8_t control;
-    uint16_t auxiliary;
-    uint16_t reserved2;
+    uint8_t reserved[4];
 } __attribute__((packed)) Register_H2D_FIS;
 
 typedef struct{
@@ -206,7 +203,7 @@ typedef struct{
 typedef struct{
     uint16_t flags;
     uint16_t physical_region_descriptor_table_length;
-    uint32_t PRD_byte_count;
+    volatile uint32_t PRD_byte_count;
     uint32_t command_table_descriptor_base;
     uint32_t command_table_descriptor_base_upper;
     uint32_t reserved[4];
@@ -225,9 +222,10 @@ typedef struct{
 
 typedef struct{
     Register_H2D_FIS command_FIS;
-    uint32_t atapi_command[4];
-    uint8_t reserved[0x30];
-    HBA_prdt_item prdt[];
+    uint8_t rest_command_fis[64 - sizeof(Register_H2D_FIS)];
+    uint8_t atapi_command[16];
+    uint8_t reserved[48];
+    HBA_prdt_item prdt[65534];
 } __attribute__((packed)) HBA_command_table;
 
 #endif
