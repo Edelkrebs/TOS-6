@@ -27,10 +27,36 @@
 #define PxTFD_DRQ (1 << 3)
 #define PxTFD_ERR (1 << 0)
 
+#define HBA_CAP_S64A (1 << 31)
+#define HBA_CAP_SNCQ (1 << 30)
+#define HBA_CAP_SSNTF (1 << 29)
+#define HBA_CAP_SMPS (1 << 28)
+#define HBA_CAP_SSS (1 << 27)
+#define HBA_CAP_SALP (1 << 26)
+#define HBA_CAP_SAL (1 << 25)
+#define HBA_CAP_SCLO (1 << 24)
+#define HBA_CAP_SAM (1 << 18)
+#define HBA_CAP_SPM (1 << 17)
+#define HBA_CAP_FBSS (1 << 16)
+#define HBA_CAP_PMD (1 << 15)
+#define HBA_CAP_SSC (1 << 14)
+#define HBA_CAP_PSC (1 << 13)
+#define HBA_CAP_CCCS (1 << 7)
+#define HBA_CAP_EMS (1 << 6)
+#define HBA_CAP_SXS (1 << 5)
+
 typedef enum{
     READ_DMA_EXT = 0x25,
     WRITE_DMA_EXT = 0x35
 } ATA_commands;
+
+typedef enum{
+    NON = 0x0,
+    SATA_DEVICE = 0x0101,
+    ATAPI = 0xEB140101,
+    ENCLOSUREMANAGEMENTBRIDGE = 0xC33C0101,
+    PORT_MULTIPLIER = 0x96690101
+} HBA_device_type;
 
 typedef enum{
     REG_H2D_FIS = 0x27,

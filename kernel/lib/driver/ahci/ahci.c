@@ -127,16 +127,14 @@ void send_ahci_command(uint8_t port, volatile HBA_command_table* command_table, 
 	{
 		command_table->prdt[i].data_base = (uint32_t)((uint64_t)data);
         command_table->prdt[i].data_upper = (uint64_t)((uint64_t)data >> 32);
-		command_table->prdt[i].byte_count_interrupt_on_complete = (8 * 1024 - 1);
-		data += 4 * 1024;
-		count -= 16;	
+		command_table->prdt[i].byte_count_interrupt_on_complete = (0x1FFF);
+		data += 0x1000;
+		count -= 0x10;	
 	}
     
     command_table->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].data_base = (uint32_t)((uint64_t)data);
     command_table->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].data_upper = (uint64_t)data >> 32;
-	command_table->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].byte_count_interrupt_on_complete = (count << 9) - 1;
-
-    printhexln(command_table->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].byte_count_interrupt_on_complete);
+	command_table->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].byte_count_interrupt_on_complete = count * 512 - 1;
 
     hba_memory_space->port_registers[port].command_issue |= 1 << slot;
 
@@ -203,7 +201,7 @@ void init_hba_port(uint64_t port){
     hba_memory_space->port_registers[port].sata_error = ~0x0;
     
 
-    if((hba_memory_space->global_registers.host_capabilities & 8000000) != 0){
+    if((hba_memory_space->global_registers.host_capabilities & HBA_CAP_SSS) != 0){
         hba_memory_space->port_registers[port].command_status |= PxCMD_SUD;
     }
 
@@ -222,18 +220,18 @@ void init_hba_port(uint64_t port){
     hba_memory_space->port_registers[port].interrupt_status = ~0;
 
     while((*ticks_since_boot) - current_ticks <= femtos_to_ticks(nanos_to_femtos(25000000))){
-        if((hba_memory_space->port_registers[port].task_file_data & 0x88) == 0){
+        if((hba_memory_space->port_registers[port].task_file_data & (PxTFD_BSY | PxTFD_DRQ)) == 0){
             break;
         }
     }
 
-    if((hba_memory_space->port_registers[port].task_file_data & 0x88) != 0){
+    if((hba_memory_space->port_registers[port].task_file_data & (PxTFD_BSY | PxTFD_DRQ)) != 0){
         panic("Couldn't initialize HBA due to non-resetting flags!");
     }
 
     ahci_ports_devices_attached |= 1 << (port);
 
-    if(hba_memory_space->port_registers[port].signature == 0x0101 && primary_sata_device == 0){
+    if(hba_memory_space->port_registers[port].signature == SATA_DEVICE && primary_sata_device == 0){
         primary_sata_device = port;
     }
 
