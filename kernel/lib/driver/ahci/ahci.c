@@ -3,6 +3,7 @@
 #include <timer.h>
 #include <mm/pmm.h>
 #include <mm/kheap.h>
+#include <mm/memory.h>
 
 PCIE_device_struct ahci_device;
 volatile HBA_memory_space* hba_memory_space;
@@ -105,9 +106,12 @@ uint8_t find_ahci_command_slot(uint8_t port){
     return 0xFF;
 }
 
-void send_ahci_command(uint8_t port, uint16_t count, uint16_t* data,uint16_t flags){
+void send_ahci_command(uint8_t port, uint16_t count, volatile uint16_t* data,uint16_t flags){
+
+    hba_memory_space->port_registers[port].interrupt_status = ~0;
 
     uint8_t slot = find_ahci_command_slot(port);
+    printhexln(slot);
 
     if(slot == 0xFF){
         panic("Couldn't find free command slot!");
@@ -115,56 +119,51 @@ void send_ahci_command(uint8_t port, uint16_t count, uint16_t* data,uint16_t fla
 
     volatile HBA_command_list* command_list = (volatile HBA_command_list*)((uint64_t)(hba_memory_space->port_registers[port].command_list_base | ((uint64_t)hba_memory_space->port_registers[port].command_list_base_upper << 32)));
 
-    command_list->command_headers[slot].flags = flags;
+    command_list->command_headers[slot].flags = flags | (sizeof(Register_H2D_FIS) / sizeof(uint32_t));
     command_list->command_headers[slot].physical_region_descriptor_table_length = (uint16_t)((count - 1) >> 4) + 1;
     command_list->command_headers[slot].command_table_descriptor_base = (uint32_t)((uint64_t)(ahci_command_tables + slot));
     command_list->command_headers[slot].command_table_descriptor_base_upper = ((uint64_t)(ahci_command_tables + slot)) >> 32;
+
+    memset((void*)(ahci_command_tables + port), 0, sizeof(HBA_command_table) + (command_list->command_headers[slot].physical_region_descriptor_table_length - 1) * sizeof(HBA_prdt_item));
     
     for (int i = 0; i < command_list->command_headers[slot].physical_region_descriptor_table_length - 1; i++)
 	{
-		ahci_command_tables->prdt[i].data_base = (uint32_t)((uint64_t)data);
-        ahci_command_tables->prdt[i].data_upper = (uint64_t)((uint64_t)data >> 32);
-		ahci_command_tables->prdt[i].byte_count_interrupt_on_complete = (8 * 1024 - 1) | (1 << 31);
+		ahci_command_tables[port].prdt[i].data_base = (uint32_t)((uint64_t)data);
+        ahci_command_tables[port].prdt[i].data_upper = (uint64_t)((uint64_t)data >> 32);
+		ahci_command_tables[port].prdt[i].byte_count_interrupt_on_complete = (8 * 1024 - 1);
 		data += 4 * 1024;
 		count -= 16;	
 	}
     
-    ahci_command_tables->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].data_base = (uint32_t)((uint64_t)data);
-    ahci_command_tables->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].data_upper = (uint64_t)((uint64_t)data >> 32);
-	ahci_command_tables->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].byte_count_interrupt_on_complete = (8 * 1024 - 1) | (1 << 31);
+    ahci_command_tables[port].prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].data_base = (uint32_t)((uint64_t)data);
+    ahci_command_tables[port].prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].data_upper = (uint64_t)((uint64_t)data >> 32);
+	ahci_command_tables[port].prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].byte_count_interrupt_on_complete = (8 * 1024 - 1);
     
     hba_memory_space->port_registers[port].command_issue |= 1 << slot;
 
-    while(((hba_memory_space->port_registers[port].command_issue >> slot) & 0x1) != 0);
-
+    while(((hba_memory_space->port_registers[port].command_issue & (1 << slot))) != 0);
 }
 
-void ahci_read(uint8_t port, uint64_t start_lba, uint16_t count, uint16_t* data){
+void ahci_read(uint8_t port, uint64_t start_lba, uint16_t count, volatile uint16_t* data){
     
     ahci_command_tables[port].command_FIS.fis_type = 0x27;
     ahci_command_tables[port].command_FIS.info = 0x80;
     ahci_command_tables[port].command_FIS.command = READ_DMA_EXT;
     ahci_command_tables[port].command_FIS.lba_low = (uint8_t)start_lba;
     ahci_command_tables[port].command_FIS.lba_mid = (uint8_t)(start_lba >> 8);
-    ahci_command_tables[port].command_FIS.lba_high = (uint8_t)(start_lba >> 24);
+    ahci_command_tables[port].command_FIS.lba_high = (uint8_t)(start_lba >> 16);
     ahci_command_tables[port].command_FIS.exp_lba_low = (uint8_t)(start_lba >> 24);
     ahci_command_tables[port].command_FIS.exp_lba_mid = (uint8_t)(start_lba >> 32); 
     ahci_command_tables[port].command_FIS.exp_lba_high = start_lba >> 40;
-    ahci_command_tables[port].command_FIS.control = 0;
-    ahci_command_tables[port].command_FIS.device = 1 << 6;
+    ahci_command_tables[port].command_FIS.control = 0x8;
+    ahci_command_tables[port].command_FIS.device = 0xA0 | (1 << 6);
     ahci_command_tables[port].command_FIS.features_low = 0;
     ahci_command_tables[port].command_FIS.features_high = 0;
     ahci_command_tables[port].command_FIS.count = count;
     ahci_command_tables[port].command_FIS.icc = 0;
 
-    send_ahci_command(port, count, data, 0x0);
+    send_ahci_command(port, count, data, 0);
     sleep(seconds_to_nanos(1));
-    
-    for(uint16_t i = 0; i < 5; i++){
-        printhexln(data[i]);
-    }
-
-    panic("LOL");
 }
 
 void init_hba_port(uint64_t port){
@@ -239,9 +238,9 @@ void init_ahci(){
         }
     }
 
-    uint16_t* buffer2 = (uint16_t*)kmalloc(512);
+    volatile uint16_t* buffer2 = (uint16_t*)kmalloc(512);
     for(uint16_t i = 0; i < 512; i++){
-        buffer2[i] = 0xFFFF;
+        buffer2[i] = 0x3FF;
     }
     ahci_read(primary_sata_device, 0, 1, buffer2);
     sleep(seconds_to_nanos(2));
