@@ -3,6 +3,30 @@
 
 #include <stdint.h>
 
+#define PxCMD_ASP (1 << 27)
+#define PxCMD_ALPE (1 << 26)
+#define PxCMD_DLAE (1 << 25)
+#define PxCMD_ATAPI (1 << 24)
+#define PxCMD_APSTE (1 << 23)
+#define PxCMD_FBSCP (1 << 22)
+#define PxCMD_ESP (1 << 21)
+#define PxCMD_CPD (1 << 20)
+#define PxCMD_MPSP (1 << 19)
+#define PxCMD_HPCP (1 << 18)
+#define PxCMD_PMA (1 << 17)
+#define PxCMD_CPS (1 << 16)
+#define PxCMD_CR  (1 << 15)
+#define PxCMD_FR  (1 << 14)
+#define PxCMD_FRE (1 << 4)
+#define PxCMD_CLO (1 << 3)
+#define PxCMD_POD (1 << 2)
+#define PxCMD_SUD (1 << 1)
+#define PxCMD_ST  (1 << 0)
+
+#define PxTFD_BSY (1 << 7)
+#define PxTFD_DRQ (1 << 3)
+#define PxTFD_ERR (1 << 0)
+
 typedef enum{
     READ_DMA_EXT = 0x25,
     WRITE_DMA_EXT = 0x35
@@ -225,7 +249,7 @@ typedef struct{
     uint8_t rest_command_fis[64 - sizeof(Register_H2D_FIS)];
     uint8_t atapi_command[16];
     uint8_t reserved[48];
-    HBA_prdt_item prdt[65534];
+    HBA_prdt_item prdt[];
 } __attribute__((packed)) HBA_command_table;
 
 #endif

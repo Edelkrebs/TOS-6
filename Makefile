@@ -32,10 +32,10 @@ OBJ    := $(CFILES:.c=.o) $(ASMFILES:.asm=.o)
 
 		
 run: image
-	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -cpu host -smp 4 -M q35
+	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -cpu host -smp 4 -M q35 -trace ahci*
 
 run_uefi: uefi_img
-	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -bios OVMF.fd -cpu host -smp 4 -M q35
+	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -bios OVMF.fd -cpu host -smp 4 -M q35 -trace ahci*
 
 image: all
 
