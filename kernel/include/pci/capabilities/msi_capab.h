@@ -8,6 +8,7 @@ typedef struct{
     uint8_t next_ptr;
     uint16_t message_control;
     uint32_t message_address;
+    uint32_t message_upper;
     uint16_t message_data;
     uint16_t reserved;
     uint32_t mask; 

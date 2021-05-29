@@ -3,6 +3,13 @@
 
 #include <stdint.h>
 
+#define AHCI_Interrupt_Vector 0x80
+
+#define SATA_FIS_C (1 << 7)
+
+#define ATA_Device_LBA (1 << 6)
+#define ATA_Device_Obsolte 0xA0
+
 #define PxCMD_ASP (1 << 27)
 #define PxCMD_ALPE (1 << 26)
 #define PxCMD_DLAE (1 << 25)
@@ -27,6 +34,13 @@
 #define PxTFD_DRQ (1 << 3)
 #define PxTFD_ERR (1 << 0)
 
+#define HBA_CAP2_DESO (1 << 5)
+#define HBA_CAP2_SADM (1 << 4)
+#define HBA_CAP2_SDS (1 << 3)
+#define HBA_CAP2_APST (1 << 2)
+#define HBA_CAP2_NVMP (1 << 1)
+#define HBA_CAP2_BOH (1 << 0)
+
 #define HBA_CAP_S64A (1 << 31)
 #define HBA_CAP_SNCQ (1 << 30)
 #define HBA_CAP_SSNTF (1 << 29)
@@ -44,6 +58,19 @@
 #define HBA_CAP_CCCS (1 << 7)
 #define HBA_CAP_EMS (1 << 6)
 #define HBA_CAP_SXS (1 << 5)
+
+#define HBA_BOHC_BB (1 << 4)
+#define HBA_BOHC_OOC (1 << 3)
+#define HBA_BOHC_SOOE (1 << 2)
+#define HBA_BOHC_OOS (1 << 1)
+#define HBA_BOHC_BOS (1 << 0)
+
+#define HBA_GHC_AE (1 << 31)
+#define HBA_GHC_MRSM (1 << 2)
+#define HBA_GHC_IE (1 << 1)
+#define HBA_GHC_HR (1 << 0)
+
+#define HBA_Interrupt_On_Complete (1 << 31)
 
 typedef enum{
     READ_DMA_EXT = 0x25,

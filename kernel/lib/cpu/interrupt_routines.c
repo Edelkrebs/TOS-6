@@ -6,6 +6,7 @@
 #include <cpu/msr.h>
 #include <apic.h>
 #include <cpu/cpu_info.h>
+#include <driver/ahci/ahci_headers.h>
 
 #include <driver/keyboard.h>
 
@@ -59,8 +60,10 @@ void isr_handler(INTinfo* info){
 
 void irq_handler(INTinfo* info){
 	switch(info->error_code){
-		case KEYBOARD_IRQ: process_scancode(inb(0x60));		
+		case KEYBOARD_IRQ: process_scancode(inb(0x60)); break;	
+		case AHCI_Interrupt_Vector: panic("EEEEEEE"); break;	
 	}
+
 	if(info->error_code != 0xFE){
 		*((uint32_t*)(lapic_addr + EOI_REGISTER)) = 0x1;
 	}

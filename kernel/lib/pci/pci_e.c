@@ -1,10 +1,4 @@
 #include <pci/pci_e.h>
-#include <pci/pci_e_headers.h>
-#include <rsdt.h>
-#include <debug.h>
-#include <mm/vmm.h>
-#include <mm/kheap.h>
-#include <pci/capabilities/msi_capab.h>
 
 MCFG* mcfg = 0;
 ECM_info_struct* ecm_info_structs;
@@ -70,41 +64,35 @@ static uint8_t has_capabilities_pointer(void* ecm_address){
     return !!(((PCIE_std_header*)ecm_address)->status & 0x10);
 }
 
-static uint8_t device_exists(uint8_t bus, uint8_t device, uint8_t function){
+static __attribute__((unused)) uint8_t device_exists(uint8_t bus, uint8_t device, uint8_t function){
     return ((PCIE_std_header*)get_ecm_address(bus, device, function))->vendor_id != 0xFFFF ? 1 : 0;
 }
 
-void* get_pcie_capabilities_addr(uint8_t bus, uint8_t device, uint8_t function){
-    void* addr = get_ecm_address(bus, device, function);
-
-    if(!device_exists(bus, device, function)){
-        return 0;
+void* get_pcie_capability(uint8_t capability_id, volatile void* ecm_base){
+    
+    if(!has_capabilities_pointer((void*)ecm_base)){
+        panic("Specified PCIE device doesn't have a capability pointer!");
     }
 
-    if(!has_capabilities_pointer(addr)){
-        return 0;
+    volatile uint8_t* capab_addr = ecm_base + ((PCIE_header_type_0*)ecm_base)->capabilities_pointer;
+
+    while(*(capab_addr + 1)){
+        if(*capab_addr == capability_id) return (void*)capab_addr;
+        capab_addr = (volatile uint8_t*) capab_addr + *(capab_addr + 1);
     }
-
-    if(!(get_header_type(addr) & 0x80) && ((get_header_type(addr) & (~0x80)) != 0x2)){
-        return (void*)(addr + ((PCIE_header_type_0*)addr)->capabilities_pointer);
-    }
-
-    return 0;
-
-}
-
-void* get_pcie_capability(uint8_t capability_id, uint8_t bus, uint8_t device, uint8_t function){
-    for(uint8_t next_ptr = *((uint8_t*)get_pcie_capabilities_addr(bus, device, function) + 1); next_ptr; next_ptr = *((uint8_t*)get_pcie_capabilities_addr(bus, device, function) + 1)){
-        if(*(uint8_t*)((uint64_t)get_ecm_address(bus, device, function) + next_ptr) == capability_id){
-            return (void*)((uint64_t)get_ecm_address(bus, device, function) + next_ptr);
-        } 
-    }
+    
+    panic("Couldn't find specified capability for specified PCIE device!");
 
     return 0;
 }
 
-void set_msi_address(MSI_capability* data, uint8_t vector, __attribute__((unused)) uint32_t processor, uint8_t edgetrigger, uint8_t deassert){
-    *((uint64_t*)((uint64_t)data->message_address)) = vector | (edgetrigger == 1 ? 0 : (1 << 15)) | (deassert == 1 ? 0 : (1 << 14));
+void enable_msi(volatile MSI_capability* msi_capab){
+    msi_capab->message_control |= 0x1;
+}
+
+void setup_msi_capab(volatile MSI_capability* msi_capab, uint8_t vector, uint32_t processor, uint8_t edgetrigger, uint8_t deassert){
+    msi_capab->message_data = vector | (edgetrigger == 1 ? 0 : (1 << 15)) | (deassert == 1 ? 0 : (1 << 14));
+    msi_capab->message_address = (0xFEE << 20) | (processor << 12) | 0x8;
 }
 
 static uint16_t search_bus(uint8_t bus, uint8_t class, uint8_t subclass, uint8_t progif){

@@ -14,6 +14,7 @@
 
 volatile void* madt_lapic_addr;
 volatile void* lapic_addr;
+uint32_t host_processor_id;
 MADT* madt;
 
 IOAPIC_info ioapics_info[256];
@@ -122,6 +123,7 @@ void init_apic(struct stivale2_struct* stivale2_struct){
 
 	lapic_addr = (void*)(rdmsr(MSR_IA32_APIC_BASE) & 0xFFFFF000);
 
+	host_processor_id = get_apic_id();
 }
 
 void lapic_init(){

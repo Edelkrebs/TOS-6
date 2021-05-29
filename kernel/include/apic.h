@@ -49,6 +49,8 @@ extern uint64_t ioapic_count;
 
 extern IOAPIC_info ioapics_info[256];
 
+extern uint32_t host_processor_id;
+
 uint32_t get_apic_id();
 CPU_info* get_unique_cpu_info();
 
