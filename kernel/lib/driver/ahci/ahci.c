@@ -241,7 +241,7 @@ void init_ahci(){
     for(uint64_t i = 0; i < 32; i++){
         ahci_command_tables[i] = (HBA_command_table*)pmm_calloc(1);
     }
-    ahci_device = get_pcie_device(0x1, 0x6, 0x1);
+    ahci_device = get_pcie_device(PCI_Class_Mass_Storage_Controller, PCI_Subclass_Serial_ATA, PCI_ProgIF_AHCI_1_0);
     if(ahci_device.error){
         panic("Couldn't find AHCI controller!");
     }
