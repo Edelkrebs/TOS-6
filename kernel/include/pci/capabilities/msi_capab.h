@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 
+#define MSI_TriggerMode (1 << 15)
+#define MSI_Level (1 << 14)
+#define MSI_DestinationMode (1 << 2)
+#define MSI_RedirectionHint (1 << 3)
+
 typedef struct{
     uint8_t capability_id;
     uint8_t next_ptr;

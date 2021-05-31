@@ -97,8 +97,13 @@ void reset_hba(){
     }
 }
 
-void ahci_enable_msi(){
+void hba_enable_interrupts(){
+    hba_memory_space->global_registers.global_host_control |= HBA_GHC_IE;
+}
 
+void ahci_enable_msi(){
+    setup_msi_capab(ahci_msi_base, AHCI_Interrupt_Vector, host_processor_id);
+    enable_msi(ahci_msi_base);
 }
 
 uint8_t find_ahci_command_slot(uint8_t port){
@@ -146,6 +151,10 @@ void send_ahci_command(uint8_t port, volatile HBA_command_table* command_table, 
     hba_memory_space->port_registers[port].command_issue |= 1 << slot;
 
     while(((hba_memory_space->port_registers[port].command_issue & (1 << slot))) != 0);
+    printhexln(hba_memory_space->port_registers[port].interrupt_status);
+    printhexln(hba_memory_space->port_registers[port].interrupt_enable);
+
+    while(hba_memory_space->port_registers[port].task_file_data & (PxTFD_BSY | PxTFD_DRQ));
 }
 
 void ahci_write(uint8_t port, uint64_t start_lba, uint16_t count, volatile uint16_t* data){
@@ -234,6 +243,8 @@ void init_hba_port(uint64_t port){
         panic("Couldn't initialize HBA due to non-resetting flags!");
     }
 
+    hba_memory_space->port_registers[port].interrupt_enable |= ~0;
+
     ahci_ports_devices_attached |= 1 << (port);
 
     if(hba_memory_space->port_registers[port].signature == SATA_DEVICE && primary_sata_device == 0){
@@ -251,13 +262,11 @@ void init_ahci(){
     hba_memory_space = (volatile HBA_memory_space*)((uint64_t)(((PCIE_header_type_0*)hba_ecm_base)->base_address_5) & 0xFFFFFFF0);
     ahci_msi_base = (volatile MSI_capability*)get_pcie_capability(0x5, hba_ecm_base);
 
-
     if((hba_memory_space->global_registers.host_capabilities & (1 << 31)) == 0){
         panic("HBA doesn't support 64 bit addressing!");
     }
 
     reset_hba();
-    
     enable_ahci();
 
     for(uint32_t i = 0; i < 32; i++){
@@ -266,9 +275,8 @@ void init_ahci(){
         }
     }
 
-    setup_msi_capab(ahci_msi_base, AHCI_Interrupt_Vector, host_processor_id, 0x1, 0x1);
-    enable_msi(ahci_msi_base);
-    printhexln(ahci_msi_base->message_address);
+    ahci_enable_msi();
+    hba_enable_interrupts();
 
     /*  _____________
     |_TEST CODE_|

@@ -30,7 +30,7 @@ extern ECM_info_struct* ecm_info_structs;
 extern uint64_t ecm_info_struct_count;
 
 void enable_msi(volatile MSI_capability* msi_capab);
-void setup_msi_capab(volatile MSI_capability* msi_capab, uint8_t vector, uint32_t processor, uint8_t edgetrigger, uint8_t deassert);
+void setup_msi_capab(volatile MSI_capability* msi_capab, uint8_t vector, uint32_t processor);
 void* get_ecm_address(uint8_t bus, uint8_t device, uint8_t function); 
 void* get_pcie_capability(uint8_t capability_id, volatile void* ecm_base);
 PCIE_device_struct get_pcie_device(uint8_t class, uint8_t device, uint8_t function);

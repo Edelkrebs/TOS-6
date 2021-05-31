@@ -90,9 +90,9 @@ void enable_msi(volatile MSI_capability* msi_capab){
     msi_capab->message_control |= 0x1;
 }
 
-void setup_msi_capab(volatile MSI_capability* msi_capab, uint8_t vector, uint32_t processor, uint8_t edgetrigger, uint8_t deassert){
-    msi_capab->message_data = vector | (edgetrigger == 1 ? 0 : (1 << 15)) | (deassert == 1 ? 0 : (1 << 14));
-    msi_capab->message_address = (0xFEE << 20) | (processor << 12) | 0x8;
+void setup_msi_capab(volatile MSI_capability* msi_capab, uint8_t vector, uint32_t processor){
+    msi_capab->message_address = vector | MSI_TriggerMode;
+    msi_capab->message_data = (0xFEE << 20) | (processor << 12) | MSI_RedirectionHint;
 }
 
 static uint16_t search_bus(uint8_t bus, uint8_t class, uint8_t subclass, uint8_t progif){

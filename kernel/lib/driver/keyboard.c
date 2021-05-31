@@ -41,10 +41,10 @@ __attribute__((unused)) static const uint8_t ascii_nomod[] = {
 };
 
 void keyboard_init(){
-	IRQ_clear_mask(1);	
 }
 
 void process_scancode(uint8_t scancode){
+	panic("EEEE");
 	switch(scancode){
 		case 0x2A:{
 			shift = 1;

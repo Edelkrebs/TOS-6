@@ -17,6 +17,7 @@ extern uint8_t primary_sata_device;
 void enable_ahci();
 void set_hba_port_idle(uint64_t port);
 void reset_hba();
+void hba_enable_interrupts();
 
 void ahci_enable_msi();
 
