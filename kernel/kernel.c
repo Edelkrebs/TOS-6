@@ -18,6 +18,9 @@
 #include <cpu/mp.h>
 #include <mm/kheap.h>
 #include <pci/pci_e.h>
+#include <driver/ahci/ahci.h>
+#include <hpet_setup.h>
+#include <timer.h>
 
 extern uint64_t block_index;
 
@@ -32,6 +35,12 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	log("Validating the Root System Description Pointer\n", INFO);
 	init_sdt();
 	log("Parsing System Description Table\n", INFO);
+
+	init_hpet();
+	log("Initializing HPET\n", SUCCESS);
+	init_timer();
+	log("Initializing global timer\n", INFO);
+
 
 	registerGDTentry(0, 0, 0, 0);	
 	registerGDTentry(1, 0, 0, 0b1001101000100000);	
@@ -49,9 +58,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	log("Initializing IDT\n", SUCCESS);
 	loadIDT();
 	log("Loading IDT\n", SUCCESS);
-
-	PIC_remap(0x20, 0x28);
-	log("Remapping PIC\n", INFO);
 
 	log("PC supports APIC\n", SUCCESS);
     init_apic(stivale2_struct); 
@@ -77,6 +83,9 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	init_pci();
 	log("Initializing PCI\n", SUCCESS);
+
+	init_ahci();
+	log("Initializing AHCI driver\n", SUCCESS);
 
 	//init_smp(stivale2_struct);
 

@@ -1,7 +1,10 @@
 #include <mm/pmm.h>
+#include <mm/vmm.h>
 #include <debug.h>
 
 uint16_t number_of_entrys; 
+
+struct stivale2_struct_tag_memmap* memmap;
 
 uint8_t* bitmap;
 uint64_t block_size;
@@ -110,6 +113,14 @@ void* pmm_alloc(uint64_t pages){
 	}
 	panic("Couldn't allocate memory!");
 	return (void*)0;
+}
+
+void* pmm_calloc(uint64_t pages){
+	void* result = pmm_alloc(pages);
+	for(uint64_t i = 0; i < pages * PMM_PAGE_SIZE; i++){
+		((uint8_t*)result)[i] = 0;
+	}
+	return result;
 }
 
 void pmm_free(void* paddr, uint64_t pages){

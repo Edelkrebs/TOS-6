@@ -34,7 +34,7 @@ extern void* sdt;
 
 extern uint64_t sdt_entry_count;
 
-SDT_T sdt_type;
+extern SDT_T sdt_type;
 
 void* find_sdt_entry(char* signature);
 

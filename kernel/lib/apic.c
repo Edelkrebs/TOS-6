@@ -14,6 +14,7 @@
 
 volatile void* madt_lapic_addr;
 volatile void* lapic_addr;
+uint32_t host_processor_id;
 MADT* madt;
 
 IOAPIC_info ioapics_info[256];
@@ -116,12 +117,14 @@ void init_apic(struct stivale2_struct* stivale2_struct){
 		ioapic_count++;
 	}
 
+	PIC_remap(0x20, 0x28);
 	for(uint8_t i = 0; i < 16; i++){
 		IRQ_set_mask(i);
 	}
 
 	lapic_addr = (void*)(rdmsr(MSR_IA32_APIC_BASE) & 0xFFFFF000);
 
+	host_processor_id = get_apic_id();
 }
 
 void lapic_init(){
@@ -162,7 +165,7 @@ uint32_t read_ioapic_register(uint32_t ioapic_id, uint32_t reg){
 
 void redirect_ioapic_irq(uint32_t ioapic, uint8_t gsi, uint8_t dest, uint64_t flags){
 	uint32_t lower_flags = (uint32_t) flags;
-	uint32_t upper_flags = flags & ~0xFFFF;
+	uint32_t upper_flags = flags >> 32;
 	if(dest < 32) panic("Trying to redirect IOAPIC GSI to ISA interrupt!");
 	lower_flags |= dest;
 	write_ioapic_register(ioapics_info[ioapic].ioapic_id, IOREDTBL_BASE_REGISTER + gsi * 2, lower_flags);
