@@ -6,6 +6,8 @@
 #include <mm/memory.h>
 #include <apic.h>
 
+// BIG FAT FUCKING TODO: implement msi support properly and dont fuck around playing Minecraft Dungeons all day
+
 PCIE_device_struct ahci_device;
 volatile HBA_memory_space* hba_memory_space;
 volatile MSI_capability* ahci_msi_base;
