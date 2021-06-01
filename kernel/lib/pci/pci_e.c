@@ -86,13 +86,10 @@ void* get_pcie_capability(uint8_t capability_id, volatile void* ecm_base){
     return 0;
 }
 
-void enable_msi(volatile MSI_capability* msi_capab){
-    msi_capab->message_control |= 0x1;
-}
-
 void setup_msi_capab(volatile MSI_capability* msi_capab, uint8_t vector, uint32_t processor){
-    msi_capab->message_address = vector | MSI_TriggerMode;
-    msi_capab->message_data = (0xFEE << 20) | (processor << 12) | MSI_RedirectionHint;
+    msi_capab->data = vector;
+    msi_capab->message_address = (0xFEE << 20) | (processor << 12);
+    msi_capab->message_control |= 1;
 }
 
 static uint16_t search_bus(uint8_t bus, uint8_t class, uint8_t subclass, uint8_t progif){

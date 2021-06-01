@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define AHCI_Interrupt_Vector 0x80
+#define AHCI_Interrupt_Vector 0x30
 
 #define SATA_FIS_C (1 << 7)
 
