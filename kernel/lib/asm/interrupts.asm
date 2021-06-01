@@ -50,7 +50,7 @@ global irq12
 global irq13
 global irq14
 global irq15
-global irq128
+global irq16
 global spurious_interrupt
 
 %macro pushaq 0
@@ -301,9 +301,9 @@ irq15:
 	push 47
 	jmp irq_default_handler
 
-irq128:
-	push 0x80
-	push 0x9F
+irq16:
+	push 16
+	push 48
 	jmp irq_default_handler
 
 spurious_interrupt:

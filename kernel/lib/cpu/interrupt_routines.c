@@ -12,8 +12,10 @@
 
 #define SYSCLOCK_IRQ 0x0
 #define KEYBOARD_IRQ 0x1
+#define AHCI_IRQ 0x10
 
 extern void process_scancode(uint8_t); // Tell the keyboard driver that theres a new keypress/ release
+extern void handle_ahci_interrupt();
 
 char* exceptions[] = {
 	"Divide error",
@@ -59,12 +61,9 @@ void isr_handler(INTinfo* info){
 }
 
 void irq_handler(INTinfo* info){
-	if(info->vector_number != 32){
-		printhex(info->vector_number);
-	}
 	switch(info->error_code){
 		case KEYBOARD_IRQ: process_scancode(inb(0x60)); break;	
-		case 0x9F: panic("ggg"); break;	
+		case AHCI_IRQ: handle_ahci_interrupt(); break;	
 	}
 
 	if(info->error_code != 0xFE){

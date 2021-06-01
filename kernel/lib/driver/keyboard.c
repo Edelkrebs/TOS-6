@@ -44,7 +44,6 @@ void keyboard_init(){
 }
 
 void process_scancode(uint8_t scancode){
-	panic("EEEE");
 	switch(scancode){
 		case 0x2A:{
 			shift = 1;

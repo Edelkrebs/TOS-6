@@ -16,6 +16,8 @@ uint32_t ahci_ports_devices_attached;
 uint8_t primary_sata_device = 0;
 volatile PCIE_header_type_0* hba_ecm_base;
 
+uint8_t processing_ahci_command = 0;
+
 static inline uint64_t round_up(uint64_t number, uint64_t alignment){
 	return number % alignment == 0 ? number : (number + (alignment - number % alignment));
 }
@@ -100,12 +102,12 @@ void reset_hba(){
 }
 
 void hba_enable_interrupts(){
-    hba_memory_space->global_registers.global_host_control |= HBA_GHC_IE;
+    hba_memory_space->global_registers.interrupt_status = 0;
+    hba_memory_space->global_registers.global_host_control |= HBA_GHC_IE | HBA_GHC_MRSM;
 }
 
 void ahci_enable_msi(){
     setup_msi_capab(ahci_msi_base, AHCI_Interrupt_Vector, host_processor_id);
-    enable_msi(ahci_msi_base);
 }
 
 uint8_t find_ahci_command_slot(uint8_t port){
@@ -153,10 +155,6 @@ void send_ahci_command(uint8_t port, volatile HBA_command_table* command_table, 
     hba_memory_space->port_registers[port].command_issue |= 1 << slot;
 
     while(((hba_memory_space->port_registers[port].command_issue & (1 << slot))) != 0);
-    printhexln(hba_memory_space->port_registers[port].interrupt_status);
-    printhexln(hba_memory_space->port_registers[port].interrupt_enable);
-
-    while(hba_memory_space->port_registers[port].task_file_data & (PxTFD_BSY | PxTFD_DRQ));
 }
 
 void ahci_write(uint8_t port, uint64_t start_lba, uint16_t count, volatile uint16_t* data){
@@ -245,7 +243,7 @@ void init_hba_port(uint64_t port){
         panic("Couldn't initialize HBA due to non-resetting flags!");
     }
 
-    hba_memory_space->port_registers[port].interrupt_enable |= ~0;
+    hba_memory_space->port_registers[port].interrupt_enable |= 1;
 
     ahci_ports_devices_attached |= 1 << (port);
 
@@ -253,6 +251,9 @@ void init_hba_port(uint64_t port){
         primary_sata_device = port;
     }
 
+}
+
+void handle_ahci_interrupt(){
 }
 
 void init_ahci(){
