@@ -1,3 +1,16 @@
+/*________________________________________________
+ *	This file is part of TOS-6, a hobby Operating 
+ *	System made by github user Edelkrebs.		  
+ * 												  
+ * 	All the code you see in this file is licensed 
+ * 	under the MIT license and you are free to use 
+ * 	it wherever and whenever you want.			  
+ * 												  
+ * 	This is the main entry point of the kernel	  
+ * 	where all of the initialization code sits.	  
+ * _______________________________________________
+ */ 
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stivale2.h>
