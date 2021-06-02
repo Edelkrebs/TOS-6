@@ -32,7 +32,7 @@ struct stivale2_struct_tag_framebuffer* fb;
 
 void screen_init(struct stivale2_struct* stivale2_struct){
 
-	fb = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
+	fb = get_stivale2_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
 
 	if(fb == NULL){
 		asm("int $3");

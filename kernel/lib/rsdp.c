@@ -21,7 +21,7 @@
 void* rsdp_ptr;
 
 void validate_rsdp(__attribute__((unused)) struct stivale2_struct* stivale2_struct){
-	struct stivale2_struct_tag_rsdp* rsdp_tag = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_RSDP_ID);
+	struct stivale2_struct_tag_rsdp* rsdp_tag = get_stivale2_tag(stivale2_struct, STIVALE2_STRUCT_TAG_RSDP_ID);
 
 	if(rsdp_tag == NULL){
 		panic("Couldn't find RSDP!");

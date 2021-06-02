@@ -53,7 +53,7 @@ static inline uint64_t difference(uint64_t number1, uint64_t number2){
 
 void init_bitmap(struct stivale2_struct* stivale2_struct){
 
-	memmap = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID);
+	memmap = get_stivale2_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID);
 	kernel_size = _kernel_end - _kernel_start;
 
 	bitmap_size = round_up((memmap->memmap[memmap->entries - 1].base + memmap->memmap[memmap->entries - 1].length) / 0x1000 / 8, PMM_PAGE_SIZE);

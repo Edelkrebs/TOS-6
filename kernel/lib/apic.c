@@ -61,7 +61,7 @@ CPU_info* get_unique_cpu_info(){
 }
 
 void init_apic(struct stivale2_struct* stivale2_struct){
-	struct stivale2_struct_tag_smp* stivale2_smp = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
+	struct stivale2_struct_tag_smp* stivale2_smp = get_stivale2_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
 	
 	cpu_count = stivale2_smp->cpu_count;
 
