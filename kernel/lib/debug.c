@@ -6,8 +6,8 @@
  * 	under the MIT license and you are free to use 
  * 	it wherever and whenever you want.			  
  * 												  
- * 	This is the file providing necessary debug
- *  utilities used in this kernel.
+ * 	This is the main file for providing necessary
+ *  debug utilities to the programmer.
  * _______________________________________________
  */ 
 

@@ -27,7 +27,6 @@
 #include <rsdp.h>
 #include <rsdt.h>
 #include <apic.h>
-#include <cpu/cpu_info.h>
 #include <cpu/mp.h>
 #include <mm/kheap.h>
 #include <pci/pci_e.h>
@@ -72,7 +71,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	loadIDT();
 	log("Loading IDT\n", SUCCESS);
 
-	log("PC supports APIC\n", SUCCESS);
     init_apic(stivale2_struct); 
 	log("Initializing APIC\n", INFO);
     lapic_init();
