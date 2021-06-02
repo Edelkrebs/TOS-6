@@ -28,6 +28,6 @@ void init_hpet(){
     hpet_registers = (volatile HPET_registers*)(hpet->address);
     frequency = hpet_registers->capabilities >> 32;
 
-    hpet_registers->config = 0x1;
+    hpet_registers->config = HPET_CNF_ENABLE;
 
 }

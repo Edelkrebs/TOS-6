@@ -152,8 +152,8 @@ void lapic_init(){
 	}
 
 	wrmsr(MSR_IA32_APIC_BASE, rdmsr(MSR_IA32_APIC_BASE) | 0x100);
-	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= 0x100; 
-	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= 0xFF; 
+	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= SVR_APIC_ENABLE; 
+	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= SPURIOUS_VECTOR; 
 }
 
 void write_ioapic_register(uint32_t ioapic_id, uint32_t reg, uint32_t value){
@@ -189,11 +189,11 @@ static void init_ioapic(uint32_t ioapic){
 	for(uint64_t i = 0; i < entry_type_2_index; i++){
 		uint32_t lower_flags = 0;
 		uint32_t upper_flags = 0;
-		if(entry_types_2[i]->flags & 0x2){
-			lower_flags |= 0x2000;
+		if(entry_types_2[i]->flags & INTERRUPT_SOURCE_OVERRIDE_ACTIVE_LOW){
+			lower_flags |= IOAPIC_RED_ENTRY_POLARITY;
 		}
-		if(entry_types_2[i]->flags & 0x8){
-			lower_flags |= 0x8000;
+		if(entry_types_2[i]->flags & INTERRUPT_SOURCE_OVERRIDE_LEVEL_TRIGGERED){
+			lower_flags |= IOAPIC_RED_ENTRY_TRIGGER_MODE;
 		}
 		redirect_ioapic_irq(ioapic, entry_types_2[i]->global_system_interrupt, 32 + entry_types_2[i]->irq_source, (uint64_t)upper_flags << 32 | lower_flags);
 	}
