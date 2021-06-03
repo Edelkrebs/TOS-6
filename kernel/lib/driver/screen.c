@@ -1,3 +1,16 @@
+/*________________________________________________
+ *	This file is part of TOS-6, a hobby Operating 
+ *	System made by github user Edelkrebs.		  
+ * 												  
+ * 	All the code you see in this file is licensed 
+ * 	under the MIT license and you are free to use 
+ * 	it wherever and whenever you want.			  
+ * 												  
+ * 	This is the main file providing several
+ *  screen and framebuffer related functions
+ * _______________________________________________
+ */ 
+
 #include <driver/screen.h>
 #include <stivale2.h>
 #include <stddef.h>
@@ -19,7 +32,7 @@ struct stivale2_struct_tag_framebuffer* fb;
 
 void screen_init(struct stivale2_struct* stivale2_struct){
 
-	fb = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
+	fb = get_stivale2_tag(stivale2_struct, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
 
 	if(fb == NULL){
 		asm("int $3");

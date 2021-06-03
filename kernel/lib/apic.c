@@ -1,3 +1,16 @@
+/*________________________________________________
+ *	This file is part of TOS-6, a hobby Operating 
+ *	System made by github user Edelkrebs.		  
+ * 												  
+ * 	All the code you see in this file is licensed 
+ * 	under the MIT license and you are free to use 
+ * 	it wherever and whenever you want.			  
+ * 												  
+ * 	This is the file setting up and using the
+ *  Advanced Programmable Interrupt Controller.
+ * _______________________________________________
+ */ 
+
 #include <apic.h>
 #include <debug.h>
 #include <acpi_tables/madt.h>
@@ -21,16 +34,11 @@ IOAPIC_info ioapics_info[256];
 
 uint64_t ioapic_count = 0;
 
-static MADT_ENTRY_TYPE_0* entry_types_0[256];
-static MADT_ENTRY_TYPE_1* entry_types_1[256];
-static MADT_ENTRY_TYPE_2* entry_types_2[256];
-static MADT_ENTRY_TYPE_4* entry_types_4[256];
-static MADT_ENTRY_TYPE_5* entry_type_5;
+static MADT_ENTRY_TYPE_2* interrupt_source_overrides[16];
+static MADT_ENTRY_TYPE_4* lapics_nmi_info[256];
 
-static uint64_t entry_type_0_index = 0;
-static uint64_t entry_type_1_index = 0;
-static uint64_t entry_type_2_index = 0;
-static uint64_t entry_type_4_index = 0;
+static uint64_t interrupt_source_override_index = 0;
+static uint64_t lapics_nmi_index = 0;
 
 uint32_t get_apic_id(){
 	return *((uint32_t*) (lapic_addr + LOCAL_APIC_ID_REGISTER));
@@ -48,7 +56,7 @@ CPU_info* get_unique_cpu_info(){
 }
 
 void init_apic(struct stivale2_struct* stivale2_struct){
-	struct stivale2_struct_tag_smp* stivale2_smp = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
+	struct stivale2_struct_tag_smp* stivale2_smp = get_stivale2_tag(stivale2_struct, STIVALE2_STRUCT_TAG_SMP_ID);
 	
 	cpu_count = stivale2_smp->cpu_count;
 
@@ -59,62 +67,52 @@ void init_apic(struct stivale2_struct* stivale2_struct){
 	uint8_t* madt_bytes = (uint8_t*) madt;
 	uint64_t index = sizeof(MADT);
 
+	uint64_t lapics_info_index = 0;
+	uint64_t ioapics_info_index = 0;
 	while(index < madt->header.length){
 		switch(madt_bytes[index]){
 			case 0:{
-				entry_types_0[entry_type_0_index] = (MADT_ENTRY_TYPE_0*)(madt_bytes + index);
-				index += entry_types_0[entry_type_0_index]->header.record_length;
-				entry_type_0_index++;
+				CPU_info cpu_info = {
+					.acpi_id = stivale2_smp->smp_info[lapics_info_index].processor_id,
+						.apic_id = stivale2_smp->smp_info[lapics_info_index].lapic_id,
+					.flags = ((MADT_ENTRY_TYPE_0*)(madt_bytes + index))->flags,
+					.goto_address = stivale2_smp->smp_info[lapics_info_index].goto_address,
+					.target_stack = stivale2_smp->smp_info[lapics_info_index].target_stack
+				};
+				cpus_info[lapics_info_index] = cpu_info;
+				index += ((MADT_ENTRY_TYPE_0*)(madt_bytes + index))->header.record_length;
+				lapics_info_index++;
 				break;
 			}case 1:{
-				entry_types_1[entry_type_1_index] = (MADT_ENTRY_TYPE_1*)(madt_bytes + index);
-				index += entry_types_1[entry_type_1_index]->header.record_length;
-				entry_type_1_index++;
+				IOAPIC_info ioapic_info = {
+					.global_sys_interrupt_base = ((MADT_ENTRY_TYPE_1*)(madt_bytes + index))->global_sys_interrupt_base,
+					.ioapic_addr = ((MADT_ENTRY_TYPE_1*)(madt_bytes + index))->ioapic_addr,
+					.ioapic_id = ((MADT_ENTRY_TYPE_1*)(madt_bytes + index))->ioapic_id,
+				};
+				ioapics_info[ioapics_info_index] = ioapic_info;
+				ioapic_count++;
+				index += ((MADT_ENTRY_TYPE_1*)(madt_bytes + index))->header.record_length;
+				ioapics_info_index++;
 				break;
 			}case 2:{
-				entry_types_2[entry_type_2_index] = (MADT_ENTRY_TYPE_2*)(madt_bytes + index);
-				index += entry_types_2[entry_type_2_index]->header.record_length;
-				entry_type_2_index++;
+				interrupt_source_overrides[interrupt_source_override_index] = (MADT_ENTRY_TYPE_2*)(madt_bytes + index);
+				index += interrupt_source_overrides[interrupt_source_override_index]->header.record_length;
+				interrupt_source_override_index++;
 				break;
 			}case 4:{
-				entry_types_4[entry_type_4_index] = (MADT_ENTRY_TYPE_4*)(madt_bytes + index);
-				index += entry_types_4[entry_type_4_index]->header.record_length;
-				entry_type_4_index++;
+				lapics_nmi_info[lapics_nmi_index] = (MADT_ENTRY_TYPE_4*)(madt_bytes + index);
+				index += lapics_nmi_info[lapics_nmi_index]->header.record_length;
+				lapics_nmi_index++;
 				break;
 			}case 5:{
-				entry_type_5 = (MADT_ENTRY_TYPE_5*)(madt_bytes + index);
-				index += entry_type_5->header.record_length;
+				index += ((MADT_ENTRY_TYPE_5*)(madt_bytes + index))->header.record_length;
 				break;
 			}default: panic("Incorrect MADT entry type!");
 		}
 	}
-	if(entry_type_5 != NULL){
-		madt_lapic_addr = (void*) entry_type_5->lapic64_addr;
-	}
 
-	if(entry_type_0_index != cpu_count){
+	if(lapics_info_index != cpu_count){
 		panic("Error parsing the MADT entrys with type 0");
-	}
-
-	for(uint64_t i = 0; i < cpu_count; i++){
-		CPU_info cpu_info = {
-			.acpi_id = stivale2_smp->smp_info[i].processor_id,
-			.apic_id = stivale2_smp->smp_info[i].lapic_id,
-			.flags = entry_types_0[i]->flags,
-			.goto_address = stivale2_smp->smp_info[i].goto_address,
-			.target_stack = stivale2_smp->smp_info[i].target_stack
-		};
-		cpus_info[i] = cpu_info;
-	}
-
-	for(uint64_t i = 0; i < entry_type_1_index; i++){
-		IOAPIC_info ioapic_info = {
-			.global_sys_interrupt_base = entry_types_1[i]->global_sys_interrupt_base,
-			.ioapic_addr = (uint64_t)entry_types_1[i]->ioapic_addr,
-			.ioapic_id = entry_types_1[i]->ioapic_id,
-		};
-		ioapics_info[i] = ioapic_info;
-		ioapic_count++;
 	}
 
 	PIC_remap(0x20, 0x28);
@@ -129,9 +127,9 @@ void init_apic(struct stivale2_struct* stivale2_struct){
 
 void lapic_init(){
 
-	for(uint32_t i = 0; i < entry_type_4_index; i++){
-		if(entry_types_4[i]->acpi_processor_id == 0xFF || entry_types_4[i]->acpi_processor_id == (*((uint32_t*)(lapic_addr + LOCAL_APIC_ID_REGISTER)) >> 24)){
-			switch(entry_types_4[i]->lint){
+	for(uint32_t i = 0; i < lapics_nmi_index; i++){
+		if(lapics_nmi_info[i]->acpi_processor_id == 0xFF || lapics_nmi_info[i]->acpi_processor_id == (*((uint32_t*)(lapic_addr + LOCAL_APIC_ID_REGISTER)) >> 24)){
+			switch(lapics_nmi_info[i]->lint){
 				case 0: *((uint32_t*) (lapic_addr + LVT_LINT0_REGISTER)) = 0x400; break;
 				case 1: *((uint32_t*) (lapic_addr + LVT_LINT1_REGISTER)) = 0x400; break;
 			}
@@ -139,8 +137,8 @@ void lapic_init(){
 	}
 
 	wrmsr(MSR_IA32_APIC_BASE, rdmsr(MSR_IA32_APIC_BASE) | 0x100);
-	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= 0x100; 
-	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= 0xFF; 
+	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= SVR_APIC_ENABLE; 
+	*((uint32_t*) (lapic_addr + SPURIOUS_INTERRUPT_VECTOR_REGISTER)) |= SPURIOUS_VECTOR; 
 }
 
 void write_ioapic_register(uint32_t ioapic_id, uint32_t reg, uint32_t value){
@@ -173,21 +171,21 @@ void redirect_ioapic_irq(uint32_t ioapic, uint8_t gsi, uint8_t dest, uint64_t fl
 }
 
 static void init_ioapic(uint32_t ioapic){
-	for(uint64_t i = 0; i < entry_type_2_index; i++){
+	for(uint64_t i = 0; i < interrupt_source_override_index; i++){
 		uint32_t lower_flags = 0;
 		uint32_t upper_flags = 0;
-		if(entry_types_2[i]->flags & 0x2){
-			lower_flags |= 0x2000;
+		if(interrupt_source_overrides[i]->flags & INTERRUPT_SOURCE_OVERRIDE_ACTIVE_LOW){
+			lower_flags |= IOAPIC_RED_ENTRY_POLARITY;
 		}
-		if(entry_types_2[i]->flags & 0x8){
-			lower_flags |= 0x8000;
+		if(interrupt_source_overrides[i]->flags & INTERRUPT_SOURCE_OVERRIDE_LEVEL_TRIGGERED){
+			lower_flags |= IOAPIC_RED_ENTRY_TRIGGER_MODE;
 		}
-		redirect_ioapic_irq(ioapic, entry_types_2[i]->global_system_interrupt, 32 + entry_types_2[i]->irq_source, (uint64_t)upper_flags << 32 | lower_flags);
+		redirect_ioapic_irq(ioapic, interrupt_source_overrides[i]->global_system_interrupt, 32 + interrupt_source_overrides[i]->irq_source, (uint64_t)upper_flags << 32 | lower_flags);
 	}
 
 	for(uint64_t i = 0; i < 16; i++){
-		for(uint64_t j = 0; j < entry_type_2_index; j++){
-			if(entry_types_2[j]->global_system_interrupt == i){
+		for(uint64_t j = 0; j < interrupt_source_override_index; j++){
+			if(interrupt_source_overrides[j]->global_system_interrupt == i){
 				goto end;
 			}
 		}

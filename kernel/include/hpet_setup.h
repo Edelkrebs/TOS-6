@@ -5,6 +5,9 @@
 
 #include <stdint.h>
 
+#define HPET_CNF_LG (1 << 1)
+#define HPET_CNF_ENABLE (1 << 0)
+
 typedef struct{
     uint64_t config_capability;
     uint64_t comparator_value;

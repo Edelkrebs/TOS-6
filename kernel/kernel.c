@@ -1,3 +1,16 @@
+/*________________________________________________
+ *	This file is part of TOS-6, a hobby Operating 
+ *	System made by github user Edelkrebs.		  
+ * 												  
+ * 	All the code you see in this file is licensed 
+ * 	under the MIT license and you are free to use 
+ * 	it wherever and whenever you want.			  
+ * 												  
+ * 	This is the main entry point of the kernel	  
+ * 	where all of the initialization code sits.	  
+ * _______________________________________________
+ */ 
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stivale2.h>
@@ -14,7 +27,6 @@
 #include <rsdp.h>
 #include <rsdt.h>
 #include <apic.h>
-#include <cpu/cpu_info.h>
 #include <cpu/mp.h>
 #include <mm/kheap.h>
 #include <pci/pci_e.h>
@@ -27,9 +39,6 @@ extern uint64_t block_index;
 void kmain(struct stivale2_struct *stivale2_struct) {
 
 	screen_init(stivale2_struct);
-
-    setup_flags();
-	log("Setting flags\n", INFO);
 
 	validate_rsdp(stivale2_struct); 
 	log("Validating the Root System Description Pointer\n", INFO);
@@ -59,7 +68,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	loadIDT();
 	log("Loading IDT\n", SUCCESS);
 
-	log("PC supports APIC\n", SUCCESS);
     init_apic(stivale2_struct); 
 	log("Initializing APIC\n", INFO);
     lapic_init();

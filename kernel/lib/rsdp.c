@@ -1,3 +1,16 @@
+/*________________________________________________
+ *	This file is part of TOS-6, a hobby Operating 
+ *	System made by github user Edelkrebs.		  
+ * 												  
+ * 	All the code you see in this file is licensed 
+ * 	under the MIT license and you are free to use 
+ * 	it wherever and whenever you want.			  
+ * 												  
+ * 	This is the file used for making use of the
+ *  Root System Descriptor Pointer.
+ * _______________________________________________
+ */ 
+
 #include <rsdp.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -8,7 +21,7 @@
 void* rsdp_ptr;
 
 void validate_rsdp(__attribute__((unused)) struct stivale2_struct* stivale2_struct){
-	struct stivale2_struct_tag_rsdp* rsdp_tag = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_RSDP_ID);
+	struct stivale2_struct_tag_rsdp* rsdp_tag = get_stivale2_tag(stivale2_struct, STIVALE2_STRUCT_TAG_RSDP_ID);
 
 	if(rsdp_tag == NULL){
 		panic("Couldn't find RSDP!");

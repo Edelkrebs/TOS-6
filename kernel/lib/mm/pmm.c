@@ -1,3 +1,17 @@
+/*________________________________________________
+ *	This file is part of TOS-6, a hobby Operating 
+ *	System made by github user Edelkrebs.		  
+ * 												  
+ * 	All the code you see in this file is licensed 
+ * 	under the MIT license and you are free to use 
+ * 	it wherever and whenever you want.			  
+ * 												  
+ * 	This is the main file providing several
+ *  necessary utility functions for managing
+ *  physical memory.
+ * _______________________________________________
+ */ 
+
 #include <mm/pmm.h>
 #include <mm/vmm.h>
 #include <debug.h>
@@ -39,7 +53,7 @@ static inline uint64_t difference(uint64_t number1, uint64_t number2){
 
 void init_bitmap(struct stivale2_struct* stivale2_struct){
 
-	memmap = stivale2_get_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID);
+	memmap = get_stivale2_tag(stivale2_struct, STIVALE2_STRUCT_TAG_MEMMAP_ID);
 	kernel_size = _kernel_end - _kernel_start;
 
 	bitmap_size = round_up((memmap->memmap[memmap->entries - 1].base + memmap->memmap[memmap->entries - 1].length) / 0x1000 / 8, PMM_PAGE_SIZE);
