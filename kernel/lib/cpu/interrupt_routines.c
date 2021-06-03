@@ -79,7 +79,7 @@ void irq_handler(INTinfo* info){
 		case AHCI_IRQ: handle_ahci_interrupt(); break;	
 	}
 
-	if(info->error_code != 0xFE){
+	if(info->error_code != SPURIOUS_VECTOR){
 		*((uint32_t*)(lapic_addr + EOI_REGISTER)) = 0x1;
 	}
 }

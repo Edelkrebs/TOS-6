@@ -40,11 +40,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	screen_init(stivale2_struct);
 
-	printhexln(0x2223234);
-
-    setup_flags();
-	log("Setting flags\n", INFO);
-
 	validate_rsdp(stivale2_struct); 
 	log("Validating the Root System Description Pointer\n", INFO);
 	init_sdt();

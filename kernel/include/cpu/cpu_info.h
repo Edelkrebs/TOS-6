@@ -17,6 +17,4 @@ extern CPU_info cpus_info[256];
 extern uint64_t cpu_count;
 extern uint8_t supports_apic;
 
-void setup_flags();
-
 #endif
