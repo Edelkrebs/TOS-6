@@ -67,21 +67,21 @@ void init_apic(struct stivale2_struct* stivale2_struct){
 	uint8_t* madt_bytes = (uint8_t*) madt;
 	uint64_t index = sizeof(MADT);
 
-	uint64_t entry_type_0_index = 0;
-	uint64_t entry_type_1_index = 0;
+	uint64_t lapics_info_index = 0;
+	uint64_t ioapics_info_index = 0;
 	while(index < madt->header.length){
 		switch(madt_bytes[index]){
 			case 0:{
 				CPU_info cpu_info = {
-					.acpi_id = stivale2_smp->smp_info[entry_type_0_index].processor_id,
-						.apic_id = stivale2_smp->smp_info[entry_type_0_index].lapic_id,
+					.acpi_id = stivale2_smp->smp_info[lapics_info_index].processor_id,
+						.apic_id = stivale2_smp->smp_info[lapics_info_index].lapic_id,
 					.flags = ((MADT_ENTRY_TYPE_0*)(madt_bytes + index))->flags,
-					.goto_address = stivale2_smp->smp_info[entry_type_0_index].goto_address,
-					.target_stack = stivale2_smp->smp_info[entry_type_0_index].target_stack
+					.goto_address = stivale2_smp->smp_info[lapics_info_index].goto_address,
+					.target_stack = stivale2_smp->smp_info[lapics_info_index].target_stack
 				};
-				cpus_info[entry_type_0_index] = cpu_info;
+				cpus_info[lapics_info_index] = cpu_info;
 				index += ((MADT_ENTRY_TYPE_0*)(madt_bytes + index))->header.record_length;
-				entry_type_0_index++;
+				lapics_info_index++;
 				break;
 			}case 1:{
 				IOAPIC_info ioapic_info = {
@@ -89,10 +89,10 @@ void init_apic(struct stivale2_struct* stivale2_struct){
 					.ioapic_addr = ((MADT_ENTRY_TYPE_1*)(madt_bytes + index))->ioapic_addr,
 					.ioapic_id = ((MADT_ENTRY_TYPE_1*)(madt_bytes + index))->ioapic_id,
 				};
-				ioapics_info[entry_type_1_index] = ioapic_info;
+				ioapics_info[ioapics_info_index] = ioapic_info;
 				ioapic_count++;
 				index += ((MADT_ENTRY_TYPE_1*)(madt_bytes + index))->header.record_length;
-				entry_type_1_index++;
+				ioapics_info_index++;
 				break;
 			}case 2:{
 				interrupt_source_overrides[interrupt_source_override_index] = (MADT_ENTRY_TYPE_2*)(madt_bytes + index);
@@ -111,7 +111,7 @@ void init_apic(struct stivale2_struct* stivale2_struct){
 		}
 	}
 
-	if(entry_type_0_index != cpu_count){
+	if(lapics_info_index != cpu_count){
 		panic("Error parsing the MADT entrys with type 0");
 	}
 
