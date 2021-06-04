@@ -41,18 +41,25 @@ image: all
 
 	-rm image.hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=image.hdd
-	 
-	parted -s image.hdd mklabel gpt
-	 
-	parted -s image.hdd mkpart primary 2048s 100%
-	 
-	echfs-utils -g -p0 image.hdd quick-format 512
-	 
-	echfs-utils -g -p0 image.hdd import limine.cfg limine.cfg
-	echfs-utils -g -p0 image.hdd import kernel.elf kernel.elf
-	  
+#	 
+#	 
+#	 
+#	echfs-utils -g -p0 image.hdd quick-format 512
+#	 
+#	echfs-utils -g -p0 image.hdd import limine.cfg limine.cfg
+#	echfs-utils -g -p0 image.hdd import kernel.elf kernel.elf
+#	  
+	parted image.hdd mklabel gpt
+	rm -rf data/boot
+	mkdir -p data/boot
+	mkfs.ext2 image.hdd
+	mount image.hdd data/boot
+	cp -p limine.cfg data/boot/limine.cfg
+	cp -p kernel.elf data/boot/kernel.elf
+	cp -p limine/limine.sys data/boot/limine.sys
 	./limine/limine-install image.hdd
-	echfs-utils -g -p0 image.hdd import limine/limine.sys limine.sys
+	umount -f data
+#	echfs-utils -g -p0 image.hdd import limine/limine.sys limine.sys
 
 uefi_img: all
 	rm -rf pack
