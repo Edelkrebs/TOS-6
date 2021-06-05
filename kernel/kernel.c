@@ -33,8 +33,7 @@
 #include <driver/ahci/ahci.h>
 #include <hpet_setup.h>
 #include <timer.h>
-
-extern uint64_t block_index;
+#include <driver/fs/ext2.h>
 
 void kmain(struct stivale2_struct *stivale2_struct) {
 
@@ -95,6 +94,8 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	init_ahci();
 	log("Initializing AHCI driver\n", SUCCESS);
 
+	init_ext2();
+	log("Initializing ext2 file system\n", SUCCESS);
 	//init_smp(stivale2_struct);
 
 	while(1) asm("hlt");

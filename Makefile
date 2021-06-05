@@ -30,36 +30,16 @@ CFILES := $(shell find ./kernel -type f -name '*.c')
 ASMFILES := $(shell find ./kernel -type f -name '*.asm')
 OBJ    := $(CFILES:.c=.o) $(ASMFILES:.asm=.o)
 
-		
 run: image
-	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -cpu host -smp 4 -M q35 -trace ahci*
+	sudo qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -cpu host -smp 4 -M q35 -trace ahci*
 
 run_uefi: uefi_img
 	qemu-system-x86_64 -m 4G -no-reboot -no-shutdown -monitor stdio -d int image.hdd -enable-kvm -bios OVMF.fd -cpu host -smp 4 -M q35 -trace ahci*
 
 image: all
 
-	-rm image.hdd
-	dd if=/dev/zero bs=1M count=0 seek=64 of=image.hdd
-#	 
-#	 
-#	 
-#	echfs-utils -g -p0 image.hdd quick-format 512
-#	 
-#	echfs-utils -g -p0 image.hdd import limine.cfg limine.cfg
-#	echfs-utils -g -p0 image.hdd import kernel.elf kernel.elf
-#	  
-	parted image.hdd mklabel gpt
-	rm -rf data/boot
-	mkdir -p data/boot
-	mkfs.ext2 image.hdd
-	mount image.hdd data/boot
-	cp -p limine.cfg data/boot/limine.cfg
-	cp -p kernel.elf data/boot/kernel.elf
-	cp -p limine/limine.sys data/boot/limine.sys
-	./limine/limine-install image.hdd
-	umount -f data
-#	echfs-utils -g -p0 image.hdd import limine/limine.sys limine.sys
+	sudo chmod +rwx ./shitpiss_images.sh
+	sudo ./shitpiss_images.sh
 
 uefi_img: all
 	rm -rf pack
