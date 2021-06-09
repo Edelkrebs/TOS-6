@@ -1,7 +1,7 @@
 	rm -f image.hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=image.hdd
 
-	parted -s ./image.hdd mklabel msdos
+	parted -s ./image.hdd mklabel gpt
 	parted -s ./image.hdd mkpart primary 1 100%
 
 	LOOPDEV=$(sudo losetup --show -Pf ./image.hdd)

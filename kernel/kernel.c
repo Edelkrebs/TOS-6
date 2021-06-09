@@ -34,6 +34,7 @@
 #include <hpet_setup.h>
 #include <timer.h>
 #include <driver/fs/ext2.h>
+#include <driver/gpt.h>
 
 void kmain(struct stivale2_struct *stivale2_struct) {
 
@@ -93,6 +94,9 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	init_ahci();
 	log("Initializing AHCI driver\n", SUCCESS);
+
+	init_gpt();
+	log("Initializing the GPT\n", SUCCESS);
 
 	init_ext2();
 	log("Initializing ext2 file system\n", SUCCESS);
