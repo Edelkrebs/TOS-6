@@ -79,7 +79,7 @@ typedef struct{
 typedef struct{
     uint32_t block_bitmap_block;
     uint32_t inode_bitmap_block;
-    uint32_t inode_table_blocK;
+    uint32_t inode_table_block;
     uint16_t unallocated_blocks;
     uint16_t unallocated_inodes;
     uint16_t directory_count;
@@ -91,10 +91,12 @@ extern Ext2_Block_Group_Descriptor* ext2_block_group_descriptor_table;
 extern Ext2_Superblock* ext2_superblock;
 extern uint64_t ext2_superblock_lba;
 extern uint32_t ext2_block_size;
+extern uint32_t ext2_inode_size;
 extern uint32_t ext2_fragment_size;
 extern uint64_t ext2_block_group_count;
 
 void ext2_read_block(uint32_t block, volatile uint16_t* data);
+Ext2_Inode* read_inode(uint32_t block_group, uint32_t inode, Ext2_Inode* output);
 void init_ext2();
 
 #endif

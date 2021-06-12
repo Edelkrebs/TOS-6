@@ -11,6 +11,7 @@ uint32_t ext2_superblock_block;
 uint64_t ext2_superblock_lba;
 uint32_t ext2_block_size;
 uint32_t ext2_fragment_size;
+uint32_t ext2_inode_size;
 uint64_t ext2_block_group_count;
 
 static inline uint64_t round_up(uint64_t number, uint64_t alignment){
@@ -19,6 +20,13 @@ static inline uint64_t round_up(uint64_t number, uint64_t alignment){
 
 void ext2_read_block(uint32_t block, volatile uint16_t* data){
     ahci_read(primary_sata_device, ext2_superblock_lba - 2 + (ext2_block_size * block) / 0x200, ext2_block_size / 0x200, data);
+}
+
+Ext2_Inode* read_inode(uint32_t block_group, uint32_t inode, Ext2_Inode* output){
+    volatile uint16_t* inode_table = (volatile uint16_t*)kmalloc(ext2_block_size);
+    ext2_read_block(ext2_block_group_descriptor_table[block_group].inode_table_block, inode_table);
+    output = (Ext2_Inode*)(((uint8_t*)inode_table) + (inode - 1) * ext2_inode_size);
+    return output;
 }
 
 void init_ext2(){
@@ -33,6 +41,7 @@ void init_ext2(){
         kfree((void*)temp_data);
     }
     
+    ext2_inode_size = 0x80;
     ext2_block_size = 0x400 << ext2_superblock->block_size;
     ext2_fragment_size = 0x400 << ext2_superblock->fragment_size;
 
@@ -44,10 +53,20 @@ void init_ext2(){
         panic("Invalid number of inodes in correlation to the number of blocks!\n");
     }
 
-    volatile uint16_t* bgdt_raw = (volatile uint16_t*)kmalloc(ext2_block_size);
+    uint32_t blocks_to_read = (ext2_block_group_count * sizeof(Ext2_Block_Group_Descriptor)) / ext2_block_size + 1;
 
-    ext2_read_block(1, bgdt_raw);
+    volatile uint16_t* bgdt_raw = (volatile uint16_t*)kmalloc(blocks_to_read * ext2_block_size);
+    
+    for(uint32_t i = 0; i < blocks_to_read; i++){
+        ext2_read_block(1 + i, bgdt_raw + i * ext2_block_size);
+    }
 
     ext2_block_group_descriptor_table = (Ext2_Block_Group_Descriptor*) bgdt_raw;
 
+    if(ext2_superblock->version_major >= 1){
+        ext2_inode_size = ext2_superblock->extended_fields.inode_size;
+    }
+
+    Ext2_Inode* inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
+    read_inode(0, 1, inode);
 }
