@@ -17,6 +17,10 @@ static inline uint64_t round_up(uint64_t number, uint64_t alignment){
 	return number % alignment == 0 ? number : (number + (alignment - number % alignment));
 }
 
+void ext2_read_block(uint32_t block, volatile uint16_t* data){
+    ahci_read(primary_sata_device, ext2_superblock_lba - 2 + (ext2_block_size * block) / 0x200, ext2_block_size / 0x200, data);
+}
+
 void init_ext2(){
     for(uint64_t i = 0; i < MAX_PARTITION_TABLE_ENTRIES; i++){
         volatile uint16_t* temp_data = (volatile uint16_t*)kmalloc(0x400);
@@ -42,10 +46,8 @@ void init_ext2(){
 
     volatile uint16_t* bgdt_raw = (volatile uint16_t*)kmalloc(ext2_block_size);
 
-    ahci_read(primary_sata_device, ext2_superblock_lba + ext2_block_size / 0x200, round_up(ext2_block_group_count * 0x20, 0x200) / 0x200, bgdt_raw);
+    ext2_read_block(1, bgdt_raw);
 
     ext2_block_group_descriptor_table = (Ext2_Block_Group_Descriptor*) bgdt_raw;
-
-    printhexln(ext2_block_group_descriptor_table->block_bitmap_block);
 
 }

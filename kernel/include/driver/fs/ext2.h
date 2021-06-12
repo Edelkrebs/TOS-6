@@ -4,6 +4,30 @@
 #include <stdint.h>
 
 typedef struct{
+    uint16_t type_permission;
+    uint16_t user_id;
+    uint32_t size_lower;
+    uint32_t last_access_time;
+    uint32_t creation_time;
+    uint32_t last_modification_time;
+    uint32_t deletion_time;
+    uint16_t group_id;
+    uint16_t hard_links_count;
+    uint32_t sector_count;
+    uint32_t flags;
+    uint32_t os_specific1;
+    uint32_t direct_block_pointers[12];
+    uint32_t singly_indirect_bock_pointer;
+    uint32_t doubly_indirect_block_pointer;
+    uint32_t triply_indirect_block_pointer;
+    uint32_t generation_number;
+    uint32_t extended_attribute_lock;
+    uint32_t size_upper;
+    uint32_t block_address_fragment;
+    uint8_t os_specific2[12];
+} __attribute__((packed)) Ext2_Inode;
+
+typedef struct{
     uint32_t first_non_reserved_inode;
     uint16_t inode_size;
     uint16_t superblock_block_group;
@@ -70,6 +94,7 @@ extern uint32_t ext2_block_size;
 extern uint32_t ext2_fragment_size;
 extern uint64_t ext2_block_group_count;
 
+void ext2_read_block(uint32_t block, volatile uint16_t* data);
 void init_ext2();
 
 #endif
