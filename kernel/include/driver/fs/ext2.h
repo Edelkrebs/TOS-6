@@ -4,6 +4,14 @@
 #include <stdint.h>
 
 typedef struct{
+    uint32_t inode;
+    uint16_t size;
+    uint8_t name_length_lower;
+    uint8_t name_length_upper;
+    char name[];
+} __attribute__((packed)) Ext2_Directory;
+
+typedef struct{
     uint16_t type_permission;
     uint16_t user_id;
     uint32_t size_lower;
@@ -96,7 +104,7 @@ extern uint32_t ext2_fragment_size;
 extern uint64_t ext2_block_group_count;
 
 void ext2_read_block(uint32_t block, volatile uint16_t* data);
-Ext2_Inode* read_inode(uint32_t block_group, uint32_t inode, Ext2_Inode* output);
+void read_inode(uint32_t inode, Ext2_Inode* data);
 void init_ext2();
 
 #endif

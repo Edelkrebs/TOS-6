@@ -22,11 +22,10 @@ void ext2_read_block(uint32_t block, volatile uint16_t* data){
     ahci_read(primary_sata_device, ext2_superblock_lba - 2 + (ext2_block_size * block) / 0x200, ext2_block_size / 0x200, data);
 }
 
-Ext2_Inode* read_inode(uint32_t block_group, uint32_t inode, Ext2_Inode* output){
+void read_inode(uint32_t inode, Ext2_Inode* data){
     volatile uint16_t* inode_table = (volatile uint16_t*)kmalloc(ext2_block_size);
-    ext2_read_block(ext2_block_group_descriptor_table[block_group].inode_table_block, inode_table);
-    output = (Ext2_Inode*)(((uint8_t*)inode_table) + (inode - 1) * ext2_inode_size);
-    return output;
+    ext2_read_block(ext2_block_group_descriptor_table[(inode - 1) / ext2_superblock->block_group_inode_count].inode_table_block, inode_table);
+    *data = *((Ext2_Inode*)((uint8_t*)inode_table + (inode - 1) * ext2_inode_size));
 }
 
 void init_ext2(){
@@ -68,5 +67,9 @@ void init_ext2(){
     }
 
     Ext2_Inode* inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
-    read_inode(0, 1, inode);
+    read_inode(2, inode);
+    volatile uint16_t* dir_raw = (volatile uint16_t*)kmalloc(ext2_block_size);
+    ext2_read_block(inode->direct_block_pointers[0], dir_raw);
+    Ext2_Directory* dir = (Ext2_Directory*)dir_raw;
+    Ext2_Directory* dir2 = (Ext2_Directory*)(((uint8_t*)dir) + dir->size);
 }
