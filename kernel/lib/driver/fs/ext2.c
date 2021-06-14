@@ -22,10 +22,14 @@ void ext2_read_block(uint32_t block, volatile uint16_t* data){
     ahci_read(primary_sata_device, ext2_superblock_lba - 2 + (ext2_block_size * block) / 0x200, ext2_block_size / 0x200, data);
 }
 
-void read_inode(uint32_t inode, Ext2_Inode* data){
+void ext2_read_inode(uint32_t inode, Ext2_Inode* data){
     volatile uint16_t* inode_table = (volatile uint16_t*)kmalloc(ext2_block_size);
     ext2_read_block(ext2_block_group_descriptor_table[(inode - 1) / ext2_superblock->block_group_inode_count].inode_table_block, inode_table);
     *data = *((Ext2_Inode*)((uint8_t*)inode_table + (inode - 1) * ext2_inode_size));
+}
+
+void ext2_get_inode_from_path(char* path, Ext2_Inode* data){
+    
 }
 
 void init_ext2(){
@@ -67,18 +71,9 @@ void init_ext2(){
     }
 
     Ext2_Inode* inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
-    read_inode(2, inode);
+    ext2_read_inode(2, inode);
     volatile uint16_t* dir_raw = (volatile uint16_t*)kmalloc(ext2_block_size);
     ext2_read_block(inode->direct_block_pointers[0], dir_raw);
-    Ext2_Directory* dir = (Ext2_Directory*)dir_raw;
-    Ext2_Directory* dir2 = (Ext2_Directory*)(((uint8_t*)dir) + dir->size);
-    Ext2_Directory* dir3 = (Ext2_Directory*)(((uint8_t*)dir2) + dir2->size);
-    Ext2_Directory* dir4 = (Ext2_Directory*)(((uint8_t*)dir3) + dir3->size);
-    Ext2_Directory* dir5 = (Ext2_Directory*)(((uint8_t*)dir4) + dir4->size);
-
-    printhexln(dir5->name_length_upper);
-    putch(dir5->name[0]);
-    putch(dir5->name[1]);
-    putch(dir5->name[2]);
-
+    //Ext2_Directory* dir = (Ext2_Directory*)dir_raw;
+    printhexln(inode->hard_links_count);
 }

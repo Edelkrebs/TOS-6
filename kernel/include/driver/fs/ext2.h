@@ -3,11 +3,22 @@
 
 #include <stdint.h>
 
+typedef enum{
+    Unknown = 0,
+    File = 1,
+    Directory = 2,
+    Character_Device = 3,
+    Block_Device = 4,
+    FIFO = 5,
+    Socket = 6,
+    Symbolic_Link = 7
+} Ext2_Dir_Entry_Type;
+
 typedef struct{
     uint32_t inode;
     uint16_t size;
     uint8_t name_length_lower;
-    uint8_t name_length_upper;
+    uint8_t feature_flags;
     char name[];
 } __attribute__((packed)) Ext2_Directory;
 
@@ -104,7 +115,8 @@ extern uint32_t ext2_fragment_size;
 extern uint64_t ext2_block_group_count;
 
 void ext2_read_block(uint32_t block, volatile uint16_t* data);
-void read_inode(uint32_t inode, Ext2_Inode* data);
+void ext2_read_inode(uint32_t inode, Ext2_Inode* data);
+void ext2_get_inode_from_path(char* path, Ext2_Inode* data);
 void init_ext2();
 
 #endif
