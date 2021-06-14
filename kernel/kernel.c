@@ -3,9 +3,8 @@
  *	System made by github user Edelkrebs.		  
  * 												  
  * 	All the code you see in this file is licensed 
- * 	under the MIT license and you are free to use 
- * 	it wherever and whenever you want.			  
- * 												  
+ * 	under the BSD 2-Clause license.		  
+ * 											  
  * 	This is the main entry point of the kernel	  
  * 	where all of the initialization code sits.	  
  * _______________________________________________

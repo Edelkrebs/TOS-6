@@ -3,8 +3,7 @@
  *	System made by github user Edelkrebs.		  
  * 												  
  * 	All the code you see in this file is licensed 
- * 	under the MIT license and you are free to use 
- * 	it wherever and whenever you want.			  
+ * 	under the BSD 2-Clause license.		  
  * 												  
  * 	This is the file providing functions to read
  *  or write from/ to Model Specific Registers.

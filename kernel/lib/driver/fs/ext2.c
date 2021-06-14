@@ -72,4 +72,13 @@ void init_ext2(){
     ext2_read_block(inode->direct_block_pointers[0], dir_raw);
     Ext2_Directory* dir = (Ext2_Directory*)dir_raw;
     Ext2_Directory* dir2 = (Ext2_Directory*)(((uint8_t*)dir) + dir->size);
+    Ext2_Directory* dir3 = (Ext2_Directory*)(((uint8_t*)dir2) + dir2->size);
+    Ext2_Directory* dir4 = (Ext2_Directory*)(((uint8_t*)dir3) + dir3->size);
+    Ext2_Directory* dir5 = (Ext2_Directory*)(((uint8_t*)dir4) + dir4->size);
+
+    printhexln(dir5->name_length_upper);
+    putch(dir5->name[0]);
+    putch(dir5->name[1]);
+    putch(dir5->name[2]);
+
 }
