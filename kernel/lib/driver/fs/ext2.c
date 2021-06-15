@@ -3,6 +3,7 @@
 #include <mm/kheap.h>
 #include <driver/ahci/ahci.h>
 #include <driver/gpt.h>
+#include <string.h>
 
 Ext2_Block_Group_Descriptor* ext2_block_group_descriptor_table;
 
@@ -28,8 +29,23 @@ void ext2_read_inode(uint32_t inode, Ext2_Inode* data){
     *data = *((Ext2_Inode*)((uint8_t*)inode_table + (inode - 1) * ext2_inode_size));
 }
 
-void ext2_get_inode_from_path(char* path, Ext2_Inode* data){
-    
+void ext2_get_inode_from_path(char* path, __attribute__((unused)) Ext2_Inode* data){
+    char* name_stub = (char*)kmalloc(0x100);
+    Ext2_Inode* curr_inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
+    uint8_t name_stub_offset = 0;
+    uint32_t path_len = strlen(path);
+    for(uint8_t i = 0; i < path_len; i++){
+        if(path[i] == '/'){
+            name_stub[i - name_stub_offset] = '\0';
+            name_stub_offset = i + 1;
+            println(name_stub);
+        }else{
+            name_stub[i - name_stub_offset] = path[i];
+        }
+    }
+    kfree(name_stub);
+    kfree(curr_inode);
+    panic("EEEE");
 }
 
 void init_ext2(){
