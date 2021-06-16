@@ -1,6 +1,7 @@
 #include <driver/fs/ext2.h>
 #include <debug.h>
 #include <mm/kheap.h>
+#include <mm/memory.h>
 #include <driver/ahci/ahci.h>
 #include <driver/gpt.h>
 #include <string.h>
@@ -29,34 +30,59 @@ void ext2_read_inode(uint32_t inode, Ext2_Inode* data){
     *data = *((Ext2_Inode*)((uint8_t*)inode_table + (inode - 1) * ext2_inode_size));
 }
 
-void ext2_get_inode_from_path(char* path, __attribute__((unused)) Ext2_Inode* data){
+void ext2_get_inode_from_path(char* path, Ext2_Inode* data){
     char* name_stub = (char*)kmalloc(0x100);
     Ext2_Inode* curr_inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
     uint8_t name_stub_offset = 0;
     uint32_t path_len = strlen(path);
+    volatile uint16_t* temp_data = (volatile uint16_t*)kmalloc(ext2_block_size);
+    uint8_t slash_count = 0;
+    ext2_read_inode(2, curr_inode);
     for(uint8_t i = 0; i <= path_len; i++){
         if(path[i] == '/'){
+            slash_count++;
             name_stub[i - name_stub_offset] = '\0';
             name_stub_offset = i + 1;
 
-            volatile uint16_t* temp_data = (volatile uint16_t*)kmalloc(ext2_block_size);
-            ext2_read_inode(2, curr_inode);
-            ext2_read_block(curr_inode->direct_block_pointers[0], temp_data);
+            ext2_read_block(curr_inode->direct_block_pointers[0], (volatile uint16_t*)temp_data);
             Ext2_Directory* curr_dir_entry = (Ext2_Directory*)temp_data;
             for(uint16_t j = 0; j <= curr_inode->hard_links_count; j++){
-                for(uint8_t index = 0; index < curr_dir_entry->name_length_lower; index++){
-                    putch(curr_dir_entry->name[index]);
+                if(!memcmp(curr_dir_entry->name, name_stub, curr_dir_entry->name_length_lower)){
+                    if(curr_dir_entry->feature_flags != Directory) panic("Trying to treat file as directory!");
+                    ext2_read_inode(curr_dir_entry->inode, curr_inode);
+                    break;
                 }
-                putch('\n');
                 curr_dir_entry = (Ext2_Directory*)(((uint8_t*)curr_dir_entry) + curr_dir_entry->size);
             }
         }else{
             name_stub[i - name_stub_offset] = path[i];
         }
     }
-    kfree(name_stub);
-    kfree(curr_inode);
-    panic("EEEE");
+
+    ext2_read_block(curr_inode->direct_block_pointers[0], (volatile uint16_t*)temp_data);
+    
+    Ext2_Directory* curr_dir_entry = (Ext2_Directory*)temp_data;
+
+    for(uint16_t j = 0; j <= curr_inode->hard_links_count; j++){
+        if(slash_count != 0){
+            if(!memcmp(curr_dir_entry->name, name_stub, curr_dir_entry->name_length_lower)){
+                ext2_read_inode(curr_dir_entry->inode, curr_inode);
+                *data = *curr_inode;
+                return;
+            }
+        }else{
+            if(!memcmp(curr_dir_entry->name, path, curr_dir_entry->name_length_lower)){
+                ext2_read_inode(curr_dir_entry->inode, curr_inode);
+                *data = *curr_inode;
+                return;
+            }
+        }
+        curr_dir_entry = (Ext2_Directory*)(((uint8_t*)curr_dir_entry) + curr_dir_entry->size);
+    }
+    panic("Couldn't find specified path");
+
+    //kfree(name_stub);
+    //kfree(curr_inode);
 }
 
 void init_ext2(){
