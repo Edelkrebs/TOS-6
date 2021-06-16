@@ -101,7 +101,7 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	log("Initializing ext2 file system\n", SUCCESS);
 	//init_smp(stivale2_struct);
 
-	ext2_get_inode_from_path("boot/hello/", 0);
+	ext2_get_inode_from_path("boot/hello", 0);
 
 	while(1) asm("hlt");
 

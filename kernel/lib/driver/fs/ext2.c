@@ -34,11 +34,22 @@ void ext2_get_inode_from_path(char* path, __attribute__((unused)) Ext2_Inode* da
     Ext2_Inode* curr_inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
     uint8_t name_stub_offset = 0;
     uint32_t path_len = strlen(path);
-    for(uint8_t i = 0; i < path_len; i++){
+    for(uint8_t i = 0; i <= path_len; i++){
         if(path[i] == '/'){
             name_stub[i - name_stub_offset] = '\0';
             name_stub_offset = i + 1;
-            println(name_stub);
+
+            volatile uint16_t* temp_data = (volatile uint16_t*)kmalloc(ext2_block_size);
+            ext2_read_inode(2, curr_inode);
+            ext2_read_block(curr_inode->direct_block_pointers[0], temp_data);
+            Ext2_Directory* curr_dir_entry = (Ext2_Directory*)temp_data;
+            for(uint16_t j = 0; j <= curr_inode->hard_links_count; j++){
+                for(uint8_t index = 0; index < curr_dir_entry->name_length_lower; index++){
+                    putch(curr_dir_entry->name[index]);
+                }
+                putch('\n');
+                curr_dir_entry = (Ext2_Directory*)(((uint8_t*)curr_dir_entry) + curr_dir_entry->size);
+            }
         }else{
             name_stub[i - name_stub_offset] = path[i];
         }
