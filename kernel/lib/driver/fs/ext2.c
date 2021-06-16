@@ -128,5 +128,4 @@ void init_ext2(){
     volatile uint16_t* dir_raw = (volatile uint16_t*)kmalloc(ext2_block_size);
     ext2_read_block(inode->direct_block_pointers[0], dir_raw);
     //Ext2_Directory* dir = (Ext2_Directory*)dir_raw;
-    printhexln(inode->hard_links_count);
 }
