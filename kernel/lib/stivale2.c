@@ -1,5 +1,6 @@
 #include <stivale2.h>
 #include <stddef.h>
+#include <mm/vmm.h>
 
 static uint8_t stack[4096];
 
@@ -30,7 +31,7 @@ struct stivale2_header stivale_hdr = {
 };
 
 void *get_stivale2_tag(struct stivale2_struct *stivale2_struct, uint64_t id) {
-    for (struct stivale2_tag* curr_tag = (void*)stivale2_struct->tags; curr_tag; curr_tag = (void*)curr_tag->next) {
+    for (struct stivale2_tag* curr_tag = (void*)stivale2_struct->tags + VM_OFFSET; curr_tag; curr_tag = (void*)curr_tag->next + VM_OFFSET) {
         if (curr_tag->identifier == id) {
             return curr_tag;
         }

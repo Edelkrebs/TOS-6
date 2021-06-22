@@ -26,15 +26,15 @@ uint64_t bitmap_size;
 	
 uint64_t kernel_size;
 
-void bitmap_setb(uint64_t index){
+static void bitmap_setb(uint64_t index){
 	bitmap[index / 8] |= 1 << (index % 8);
 }
 
-void bitmap_clearb(uint64_t index){
+static void bitmap_clearb(uint64_t index){
 	bitmap[index / 8] &= ~(1 << (index % 8));
 }
 
-uint64_t bitmap_getb(uint64_t index){
+static uint64_t bitmap_getb(uint64_t index){
 	return !!(bitmap[index / 8] & (1 << (index % 8)));
 }
 
@@ -116,7 +116,7 @@ void* pmm_alloc(uint64_t pages){
 						for(uint64_t x = 0; x < j; x++){
 							bitmap_setb(i + x);
 						}
-						return (void*)(i * PMM_PAGE_SIZE); 
+						return (void*)(i * PMM_PAGE_SIZE) + VM_OFFSET; 
 					}
 				}else{
 					continue;		

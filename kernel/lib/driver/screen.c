@@ -13,6 +13,7 @@
 #include <driver/screen.h>
 #include <stivale2.h>
 #include <stddef.h>
+#include <mm/vmm.h>
 
 uint32_t* framebuffer;
 uint32_t fb_pitch;
@@ -37,7 +38,7 @@ void screen_init(struct stivale2_struct* stivale2_struct){
 		asm("int $3");
 	}
 
-	framebuffer = (uint32_t*)fb->framebuffer_addr;
+	framebuffer = (uint32_t*)((fb->framebuffer_addr) + VM_OFFSET);
 	fb_pitch = fb->framebuffer_pitch; 
 	fb_width = fb->framebuffer_width;
 	fb_height = fb->framebuffer_height;

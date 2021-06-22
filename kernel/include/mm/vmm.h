@@ -1,7 +1,7 @@
 #ifndef __VMM_H
 #define __VMM_H
 
-#define VM_OFFSET 0xffffffff80000000
+#define VM_OFFSET 0xffff800000000000
 
 #include <stdint.h>
 

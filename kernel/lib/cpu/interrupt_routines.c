@@ -69,6 +69,12 @@ void isr_handler(INTinfo* info){
 	printhexln(info->error_code);
 	log("On RIP: ", ERROR);
 	printhexln(info->rip);
+	if(info->vector_number == 0xE){
+		log("On address: ", ERROR);
+		uint64_t cr2 = 0;
+		asm ("mov %%cr2, %0;" : "=r"(cr2) ::);
+		printhexln(cr2);
+	}
 	panic(exceptions[info->vector_number]);		
 }
 

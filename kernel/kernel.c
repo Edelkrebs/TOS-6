@@ -38,9 +38,9 @@
 void kmain(struct stivale2_struct *stivale2_struct) {
 
 	screen_init(stivale2_struct);
-
+	
 	validate_rsdp(stivale2_struct); 
-	log("Validating the Root System Description Pointer\n", INFO);
+	/*log("Validating the Root System Description Pointer\n", INFO);
 	init_sdt();
 	log("Parsing System Description Table\n", INFO);
 
@@ -76,7 +76,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	init_vmm();
 	log("Setting up VMM\n", INFO);
-	identity_map((void*)0x1000, 0xFFFFF, 0x3);
 	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
 	log("Mapping pages\n", SUCCESS);
 	activate_paging();
@@ -85,8 +84,8 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	keyboard_init();
 	log("Initializing Keyboard driver\n", SUCCESS);
 
-	init_heap();
-	log("Initializing kernel heap\n", SUCCESS);
+	kmalloc(02020);
+	//kfree(ptr);
 
 	init_pci();
 	log("Initializing PCI\n", SUCCESS);
@@ -102,8 +101,8 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	//init_smp(stivale2_struct);
 
 	Ext2_Inode* inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
-	ext2_get_inode_from_path("boot", inode);
-
+	ext2_get_inode_from_path("ddd", inode);
+*/
 	while(1) asm("hlt");
 
 }

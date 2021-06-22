@@ -15,123 +15,155 @@
 #include <mm/pmm.h>
 #include <mm/vmm.h>
 #include <debug.h>
+#include <stddef.h>
 
-static uint64_t block_index = 1;
-heap_t kheap;
-heap_block kheap_blocks[512];
-uint64_t max_kheap_blocks = 511;
+#define PMM_PAGE_SIZE 0x1000
+#define SLAB_OBJECT_COUNT 0x1000
+#define MIN_SLAB_SIZE 0x20
 
-void* kmalloc(uint64_t size){
+typedef struct{
+    size_t size;
+    void* start;
+    uint8_t* bitmap;
+    void* next;
+    uint16_t allocated_objects;
+} slab;
 
+static void bitmap_setb(uint8_t* bitmap, uint64_t index){
+	bitmap[index / 8] |= 1 << (index % 8);
+}
+
+static void bitmap_clearb(uint8_t* bitmap, uint64_t index){
+	bitmap[index / 8] &= ~(1 << (index % 8));
+}
+
+static uint8_t bitmap_getb(uint8_t* bitmap, uint64_t index){
+	return !!(bitmap[index / 8] & (1 << (index % 8)));
+}
+
+static inline uint64_t page_align(uint64_t number){
+	return number % PMM_PAGE_SIZE == 0 ? number : (number + (PMM_PAGE_SIZE - number % PMM_PAGE_SIZE));
+}
+
+slab* slab_stack = NULL;
+
+void slab_create(size_t size){
+    if(slab_stack == NULL){
+        slab_stack = (slab*)pmm_calloc(1);
+        slab_stack->allocated_objects = 0;
+    panic("EEEE");
+        slab_stack->bitmap = (uint8_t*)pmm_calloc(1);
+        slab_stack->size = size;
+        slab_stack->start = pmm_calloc(page_align(size * SLAB_OBJECT_COUNT) / PMM_PAGE_SIZE);
+        slab_stack->next = NULL;
+        return;
+    }else{
+        slab* slab;
+        for(slab = slab_stack; slab->next; slab = slab->next);
+        slab->next = pmm_calloc(1);
+        slab = slab->next;
+        slab->allocated_objects = 0;
+        slab->bitmap = (uint8_t*)pmm_calloc(1);
+        slab->size = size;
+        slab->start = pmm_calloc(page_align(size * SLAB_OBJECT_COUNT) / PMM_PAGE_SIZE);
+        slab->next = NULL;
+        return;
+    }
+}
+
+void* slab_alloc(uint64_t size){
     if(size == 0){
-        panic("Invalid allocation size!");
+        return NULL; 
     }
 
-    if(size > kheap.block_size - sizeof(heap_list_entry)){
-        panic("Couldn't allocate memory!");
+    size--; 
+    size |= size >> 1;
+    size |= size >> 2;
+    size |= size >> 4;
+    size |= size >> 8;
+    size |= size >> 16;
+    size |= size >> 32;
+    size++;
+
+    while(size < MIN_SLAB_SIZE){
+        size++;
     }
 
-    uint64_t temp_block_index = 0;
-    for(heap_block block = kheap_blocks[temp_block_index]; temp_block_index < block_index; block = kheap_blocks[++temp_block_index]){
-        for(heap_list_entry* current_entry = block.first_entry; current_entry; current_entry = current_entry->next){
-	        if(current_entry->size >= size + sizeof(heap_list_entry) && current_entry->free == 1){
-                heap_list_entry* hdr_ptr = (heap_list_entry*)((void*)current_entry + size + sizeof(heap_list_entry));
-                hdr_ptr->free = 1;
-                hdr_ptr->next = current_entry->next;
-                hdr_ptr->size = current_entry->size - size - sizeof(heap_list_entry);
-                current_entry->free = 0;
-                current_entry->next = (void*)hdr_ptr;
-                current_entry->size = size;
-                if(current_entry == block.last_entry){
-                    block.last_entry = hdr_ptr;
+    if(slab_stack == NULL){
+        slab_create(size);
+    }
+
+    for(slab* slab = slab_stack; slab; slab = slab->next){
+        if(slab->size == size && slab->allocated_objects < SLAB_OBJECT_COUNT){
+            for(uint32_t i = 0; i < SLAB_OBJECT_COUNT; i++){
+                if(!bitmap_getb(slab->bitmap, i)){
+                    bitmap_setb(slab->bitmap, i);
+                    slab->allocated_objects++;
+                    return slab->start + i * slab->size;
                 }
-
-                return (void*)current_entry + sizeof(heap_block);
             }
         }
     }
 
-    grow_heap(1);
-    return kmalloc(size);
+    slab_create(size);
+    slab_alloc(size);
+    return NULL;
+}
 
+void slab_free(void* ptr){
+    if(ptr == NULL){
+        return; 
+    }
+
+    for(slab* slab = slab_stack; slab; slab = slab->next){
+        if(ptr >= slab->start && ptr < (slab->start + slab->size * SLAB_OBJECT_COUNT)){
+            bitmap_clearb(slab->bitmap, (ptr - slab->start) / slab->size);
+            slab->allocated_objects--;
+            return;
+        }
+    }
+}
+
+void* slab_realloc(void* ptr, uint64_t new_size){
+
+    new_size--; 
+    new_size |= new_size >> 1;
+    new_size |= new_size >> 2;
+    new_size |= new_size >> 4;
+    new_size |= new_size >> 8;
+    new_size |= new_size >> 16;
+    new_size |= new_size >> 32;
+    new_size++;
+
+    while(new_size < MIN_SLAB_SIZE){
+        new_size++;
+    }
+
+    uint64_t size = 0;
+    for(slab* slab = slab_stack; slab; slab = slab->next){
+        if(ptr >= slab->start && ptr < (slab->start + slab->size * SLAB_OBJECT_COUNT)){
+            size = slab->size;
+        }
+    }
+
+    uint8_t* new_ptr = (uint8_t*)slab_alloc(new_size); 
+
+    for(uint64_t i = 0; i < size; i++){
+        new_ptr[i] = ((uint8_t*)ptr)[i];
+    }
+
+    slab_free(ptr);
+    return new_ptr;
+}
+
+void* kmalloc(uint64_t size){
+    return slab_alloc(size);
+}
+
+void* krealloc(void* ptr, uint64_t new_size){
+    return slab_realloc(ptr, new_size);
 }
 
 void kfree(void* ptr){
-
-    if(ptr == 0){
-        panic("Trying to free a 0 poitner!");
-    }
-
-    heap_list_entry* prev_entry = 0;
-
-    uint64_t temp_block_index = 0;
-    for(heap_block block = kheap_blocks[temp_block_index]; temp_block_index < block_index; block = kheap_blocks[++temp_block_index]){
-        for(heap_list_entry* current_entry = block.first_entry; current_entry; current_entry = current_entry->next){
-	        if(current_entry == ptr){
-                if(prev_entry == 0){
-                    current_entry->free = 1;
-                    if(current_entry->next != 0 && ((heap_list_entry*)current_entry->next)->free == 1){
-                        current_entry->size += ((heap_list_entry*)current_entry->next)->size + sizeof(heap_list_entry);
-                        current_entry->next = ((heap_list_entry*)current_entry->next)->next;
-                    }
-                    return;
-                }
-                prev_entry->size += current_entry->size + sizeof(heap_list_entry);
-                prev_entry->next = current_entry->next;
-                if(prev_entry->next == 0){
-                    block.last_entry = prev_entry;
-                }
-                return;
-            }
-            prev_entry = current_entry;
-        }
-    }
-
-    panic("Couldn't free pointer!");
-}
-
-void grow_heap(uint64_t pages){
-
-    if(block_index >= block_limit){
-        panic("Heap overflow!");
-    }
-
-    for(uint64_t i = 0; i < pages; i++){
-        heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(0x200);
-
-        for(uint64_t j = 0; j < kheap.block_size / 0x1000; j++){
-            if(!check_mapped(first_entry + j * 0x1000)){
-                identity_map(first_entry + j * 0x1000, 1, 0x3);
-            }
-        }
-
-        first_entry->free = 1;
-        first_entry->size = kheap.block_size - sizeof(heap_list_entry);
-        first_entry->next = 0;
-
-        kheap_blocks[block_index].first_entry = first_entry;
-        kheap_blocks[block_index].last_entry = first_entry;
-        block_index++;
-    }
-}
-
-void init_heap(){
-    heap_list_entry* first_entry = (heap_list_entry*)pmm_alloc(0x200);
-
-    kheap.block_size = 0x100000;
-    first_entry->free = 1;
-    first_entry->size = kheap.block_size - sizeof(heap_list_entry);
-    first_entry->next = 0;
-
-    kheap_blocks[0].first_entry = first_entry;
-    kheap_blocks[0].last_entry = first_entry;
-
-    kheap.first_block = 0;
-
-    for(uint64_t i = 0; i < kheap.block_size / 0x1000; i++){
-        if(!check_mapped(first_entry + i * 0x1000)){
-            identity_map(first_entry + i * 0x1000, 1, 0x3);
-        }
-    }
-
+    slab_free(ptr);
 }

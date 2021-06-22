@@ -11,10 +11,6 @@ extern struct stivale2_struct_tag_memmap* memmap;
 extern uint8_t _kernel_start[];
 extern uint8_t _kernel_end[];
 
-void bitmap_setb(uint64_t index);
-void bitmap_clearb(uint64_t index);
-uint64_t bitmap_getb(uint64_t index);
-
 extern uint8_t* bitmap;
 extern uint64_t block_size;
 extern uint64_t block_limit;

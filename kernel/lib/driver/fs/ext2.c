@@ -32,10 +32,11 @@ void ext2_read_inode(uint32_t inode, Ext2_Inode* data){
 
 void ext2_get_inode_from_path(char* path, Ext2_Inode* data){
     char* name_stub = (char*)kmalloc(0x100);
+    kfree(name_stub);
     Ext2_Inode* curr_inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
     uint8_t name_stub_offset = 0;
     uint32_t path_len = strlen(path);
-    volatile uint16_t* temp_data = (volatile uint16_t*)kmalloc(ext2_block_size);
+    void* temp_data = (void*)kmalloc(ext2_block_size);
     uint8_t slash_count = 0;
     ext2_read_inode(2, curr_inode);
     for(uint8_t i = 0; i <= path_len; i++){
@@ -79,10 +80,9 @@ void ext2_get_inode_from_path(char* path, Ext2_Inode* data){
         }
         curr_dir_entry = (Ext2_Directory*)(((uint8_t*)curr_dir_entry) + curr_dir_entry->size);
     }
+    //kfree(curr_inode);
     panic("Couldn't find specified path");
 
-    //kfree(name_stub);
-    //kfree(curr_inode);
 }
 
 void init_ext2(){

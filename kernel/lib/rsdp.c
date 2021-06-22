@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <debug.h>
 #include <mm/memory.h>
+#include <mm/vmm.h>
 #include <rsdt.h>
 
 void* rsdp_ptr;
@@ -26,7 +27,7 @@ void validate_rsdp(__attribute__((unused)) struct stivale2_struct* stivale2_stru
 		panic("Couldn't find RSDP!");
 	}
 	
-	rsdp_ptr = (void*)rsdp_tag->rsdp;
+	rsdp_ptr = (void*)rsdp_tag->rsdp + VM_OFFSET;
 
 	if(memcmp((uint8_t*)((RSDP*)rsdp_ptr)->signature, (uint8_t*)"RSD PTR ", 8) != 0){
 		panic("Invalid RSDP signature!");
