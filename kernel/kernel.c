@@ -40,7 +40,7 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	screen_init(stivale2_struct);
 	
 	validate_rsdp(stivale2_struct); 
-	/*log("Validating the Root System Description Pointer\n", INFO);
+	log("Validating the Root System Description Pointer\n", INFO);
 	init_sdt();
 	log("Parsing System Description Table\n", INFO);
 
@@ -61,6 +61,7 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	populate_bitmap();
 	log("Populating bitmap\n", SUCCESS);	
 
+	printhexln(*ticks_since_boot);
 
 	initIDT();
 	log("Initializing IDT\n", SUCCESS);
@@ -76,11 +77,12 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	init_vmm();
 	log("Setting up VMM\n", INFO);
+	map_area((void*) 0xffff800000000000, (void*) 0x0, 0x200000, 0x3);
 	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
 	log("Mapping pages\n", SUCCESS);
 	activate_paging();
-	log("Loading CR3\n", SUCCESS);
-
+	//log("Loading CR3\n", SUCCESS);
+/*
 	keyboard_init();
 	log("Initializing Keyboard driver\n", SUCCESS);
 

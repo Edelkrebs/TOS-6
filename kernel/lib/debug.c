@@ -357,7 +357,7 @@ void log(const char* str, LOG_TYPE type){
 	print(str);
 }
 
-void printhex(uint64_t number){
+void printhex(__attribute__((unused))uint64_t number){
 	char* str =  "0x0000000000000000\0";
 	uint64_t numbercpy = number;
 	for(int i = 17; i > 1; i--){

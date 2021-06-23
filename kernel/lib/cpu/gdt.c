@@ -10,6 +10,7 @@
  * _______________________________________________
  */ 
 
+#include <mm/vmm.h>
 #include <cpu/gdt.h>
 #include <debug.h>
 

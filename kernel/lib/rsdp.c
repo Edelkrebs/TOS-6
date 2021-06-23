@@ -42,7 +42,7 @@ void validate_rsdp(__attribute__((unused)) struct stivale2_struct* stivale2_stru
 		if((uint8_t) rsdp2_sum != 0){
 			panic("Invalid RSDP2 checksum!");
 		}
-		sdt = (void*)(((RSDP2*) rsdp2_bytes)->xsdt);
+		sdt = (void*)(((RSDP2*) rsdp2_bytes)->xsdt + VM_OFFSET);
 		sdt_type = eXSDT;
 	}else{
 		uint16_t rsdp1_sum = 0;
@@ -53,7 +53,7 @@ void validate_rsdp(__attribute__((unused)) struct stivale2_struct* stivale2_stru
 		if((uint8_t)rsdp1_sum != 0){
 			panic("Invalid RSDP checksum!");
 		}
-		sdt = (void*)((uint64_t)((RSDP*) rsdp1_bytes)->rsdt);
+		sdt = (void*)((uint64_t)((RSDP*) rsdp1_bytes)->rsdt + VM_OFFSET);
 		sdt_type = eRSDT;
 	}
 }

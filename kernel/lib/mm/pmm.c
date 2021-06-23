@@ -116,7 +116,7 @@ void* pmm_alloc(uint64_t pages){
 						for(uint64_t x = 0; x < j; x++){
 							bitmap_setb(i + x);
 						}
-						return (void*)(i * PMM_PAGE_SIZE) + VM_OFFSET; 
+						return (void*)(i * PMM_PAGE_SIZE); 
 					}
 				}else{
 					continue;		
