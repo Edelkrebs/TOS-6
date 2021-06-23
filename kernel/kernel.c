@@ -38,6 +38,7 @@
 void kmain(struct stivale2_struct *stivale2_struct) {
 
 	screen_init(stivale2_struct);
+	println("EEE");
 	
 	validate_rsdp(stivale2_struct); 
 	log("Validating the Root System Description Pointer\n", INFO);
@@ -81,7 +82,7 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	map_area((void*) 0xffffffff80000000, (void*) 0x0, 0x80000, 0x3);
 	log("Mapping pages\n", SUCCESS);
 	activate_paging();
-	//log("Loading CR3\n", SUCCESS);
+	log("Loading CR3\n", SUCCESS);
 /*
 	keyboard_init();
 	log("Initializing Keyboard driver\n", SUCCESS);

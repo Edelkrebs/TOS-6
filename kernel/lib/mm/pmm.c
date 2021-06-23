@@ -34,7 +34,7 @@ static void bitmap_clearb(uint64_t index){
 	bitmap[index / 8] &= ~(1 << (index % 8));
 }
 
-static uint64_t bitmap_getb(uint64_t index){
+__attribute__((unused))static uint64_t bitmap_getb(uint64_t index){
 	return !!(bitmap[index / 8] & (1 << (index % 8)));
 }
 
@@ -106,7 +106,7 @@ void populate_bitmap(){
 
 }
 
-void* pmm_alloc(uint64_t pages){
+void* pmm_alloc(__attribute__((unused))uint64_t pages){
 	assert(pages == 0, "Number of pages to allocate can't be 0!");
 	for(uint64_t i = 0; i < bitmap_size * 8; i++){
 		if(bitmap_getb(i) == 0){
@@ -131,7 +131,7 @@ void* pmm_alloc(uint64_t pages){
 void* pmm_calloc(uint64_t pages){
 	void* result = pmm_alloc(pages);
 	for(uint64_t i = 0; i < pages * PMM_PAGE_SIZE; i++){
-		((uint8_t*)result)[i] = 0;
+		((uint8_t*)result + VM_OFFSET)[i] = 0;
 	}
 	return result;
 }
