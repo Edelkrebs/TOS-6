@@ -16,49 +16,49 @@ MCFG* mcfg = 0;
 ECM_info_struct* ecm_info_structs;
 uint64_t ecm_info_struct_count;
 
-static uint16_t get_vendor_id(void* ecm_address){
+__attribute__((unused))static uint16_t get_vendor_id(void* ecm_address){
     return ((PCIE_std_header*)ecm_address)->vendor_id;
 }
 
-/*static uint16_t get_device_id(void* ecm_address){
+__attribute__((unused))static uint16_t get_device_id(void* ecm_address){
     return ((PCIE_std_header*)ecm_address)->device_id;
-}*/
+}
 
-/*static uint16_t get_status(void* ecm_address){
+__attribute__((unused))static uint16_t get_status(void* ecm_address){
     return ((PCIE_std_header*)ecm_address)->status;
-}*/
+}
 
-/*static uint8_t get_revision_id(void* ecm_address){
+__attribute__((unused))static uint8_t get_revision_id(void* ecm_address){
     return ((PCIE_std_header*)ecm_address)->revision_id;
-}*/
+}
 
-static uint8_t get_prog_if(void* ecm_address){
+__attribute__((unused))static uint8_t get_prog_if(void* ecm_address){
     return ((PCIE_std_header*)ecm_address)->prog_if;
 }
 
-static uint8_t get_subclass(void* ecm_address){
+__attribute__((unused))static uint8_t get_subclass(void* ecm_address){
     return ((PCIE_std_header*)ecm_address)->subclass;
 }
 
-static uint8_t get_class_code(void* ecm_address){
+__attribute__((unused))static uint8_t get_class_code(void* ecm_address){
     return ((PCIE_std_header*)ecm_address)->class_code;
 }
 
-/*static uint8_t get_cache_line_size(void* ecm_address){
+__attribute__((unused))static uint8_t get_cache_line_size(void* ecm_address){
     return ((PCIE_std_header*)ecm_address)->cache_line_size;
-}*/
+}
 
-/*static uint8_t get_latency_timer(void* ecm_address){
+__attribute__((unused))static uint8_t get_latency_timer(void* ecm_address){
     return ((PCIE_std_header*)ecm_address)->latency_timer;
-}*/
+}
 
-static uint8_t get_header_type(void* ecm_address){
+__attribute__((unused))static uint8_t get_header_type(void* ecm_address){
     return ((PCIE_std_header*)ecm_address)->header_type;
 }
 
-/*static uint8_t get_bist(void* ecm_address){
+__attribute__((unused))static uint8_t get_bist(void* ecm_address){
     return ((PCIE_std_header*)ecm_address)->bist;
-}*/
+}
 
 void* get_ecm_address(uint8_t bus, uint8_t device, uint8_t function){
 
@@ -104,7 +104,7 @@ void setup_msi_capab(volatile MSI_capability* msi_capab, uint8_t vector, uint32_
     msi_capab->message_control |= 1;
 }
 
-static uint16_t search_bus(uint8_t bus, uint8_t class, uint8_t subclass, uint8_t progif){
+__attribute__((unused))static uint16_t search_bus(__attribute__((unused))uint8_t bus, __attribute__((unused))uint8_t class, __attribute__((unused))uint8_t subclass, __attribute__((unused))uint8_t progif){
     
     for(uint8_t device = 0; device < 32; device++){
         if(get_vendor_id(get_ecm_address(bus, device, 0)) == 0xFFFF) continue;
@@ -126,11 +126,11 @@ static uint16_t search_bus(uint8_t bus, uint8_t class, uint8_t subclass, uint8_t
     return UINT16_MAX;
 }
 
-PCIE_device_struct get_pcie_device(uint8_t class, uint8_t subclass, uint8_t progif){
+PCIE_device_struct get_pcie_device(__attribute__((unused))uint8_t class, __attribute__((unused))uint8_t subclass, __attribute__((unused))uint8_t progif){
     PCIE_device_struct device_struct = {.bus = 0, .device = 0, .ecma = 0, .function = 0, .segment_group = 0};
     for(uint64_t i = 0; i < ecm_info_struct_count; i++){
         for(uint64_t curr_bus = ecm_info_structs[i].start_pci_bus_number; curr_bus < ecm_info_structs[i].end_pci_bus_number; curr_bus++){
-            uint32_t result = search_bus(curr_bus, class, subclass, progif);
+            __attribute__((unused))uint32_t result = search_bus(curr_bus, class, subclass, progif);
             if(result != UINT16_MAX){
                 device_struct.bus = curr_bus;
                 device_struct.device = (uint8_t)result;
@@ -160,7 +160,7 @@ void init_pci(){
         ecm_info_structs[i].end_pci_bus_number = mcfg->config_space_structs[i].end_pci_bus_number;
         ecm_info_structs[i].start_pci_bus_number = mcfg->config_space_structs[i].start_pci_bus_number;
         ecm_info_structs[i].pci_segment_group = mcfg->config_space_structs[i].pci_segment_group;
-        ecm_info_structs[i].enhanced_config_space_base = mcfg->config_space_structs[i].enhanced_config_space_base;
+        ecm_info_structs[i].enhanced_config_space_base = mcfg->config_space_structs[i].enhanced_config_space_base + VM_OFFSET;
     }
 
 }

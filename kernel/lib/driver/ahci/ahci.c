@@ -295,11 +295,11 @@ void init_ahci(){
 
     /*  _____________
     |_TEST CODE_|
-    volatile uint16_t* data = (volatile uint16_t*)kmalloc(512);
+    */volatile uint16_t* data = (volatile uint16_t*)kmalloc(512);
     for(uint64_t i = 0; i < 256; i++){
         data[i] = 0xFFFF;
     }
     ahci_read(primary_sata_device, 0, 1, data);
     printhexln(data[255]);
-    */
+    /**/
 }

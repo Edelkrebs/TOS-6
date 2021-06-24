@@ -31,27 +31,27 @@ void init_vmm(){
 }
 
 void activate_paging(){
+	printhexln((uint64_t)get_unique_cpu_info()->pml4 - VM_OFFSET);
 	asm ("mov %0, %%cr3" :: "r" ((uint64_t)get_unique_cpu_info()->pml4 - VM_OFFSET));	
 }
 
-__attribute__((unused))static void create_pml_entry(__attribute__((unused))uint64_t index, __attribute__((unused))uint64_t* pagemap, __attribute__((unused))uint16_t flags){
-	__attribute__((unused))uint64_t* addr = (uint64_t*) (pmm_alloc(1) + VM_OFFSET);
-	for(int i = 0; i < 512; i++) addr[i] = 0;
-	pagemap[index] = (((uint64_t)addr - VM_OFFSET) & ~0xFFF) | (flags & 0xFFF) | 0x1; 
+static void create_pml_entry(uint64_t index, uint64_t* pagemap, uint16_t flags){
+	uint64_t* addr = (uint64_t*)pmm_calloc(1);
+	pagemap[index] = (((uint64_t)addr) & ~0xFFF) | (flags & 0xFFF) | 0x1; 
 }
 
-void map_page(void* vaddr, __attribute__((unused))void* paddr, uint16_t flags){
+void map_page(void* vaddr, void* paddr, uint16_t flags){
 
 	flags &= 0xFFF;
 
 	uint64_t* unique_pml4 = 0;
 
 	unique_pml4 = get_unique_cpu_info()->pml4;
-	
-	__attribute__((unused))uint64_t pt_index = ((uint64_t)vaddr >> 12) & 0x1FF;
-	__attribute__((unused))uint64_t pd_index = ((uint64_t)vaddr >> 21) & 0x1FF;
-	__attribute__((unused))uint64_t pdpt_index = ((uint64_t)vaddr >> 30) & 0x1FF;
-	__attribute__((unused))uint64_t pml4_index = ((uint64_t)vaddr >> 39) & 0x1FF;
+
+	uint64_t pt_index = ((uint64_t)vaddr >> 12) & 0x1FF;
+	uint64_t pd_index = ((uint64_t)vaddr >> 21) & 0x1FF;
+	uint64_t pdpt_index = ((uint64_t)vaddr >> 30) & 0x1FF;
+	uint64_t pml4_index = ((uint64_t)vaddr >> 39) & 0x1FF;
 
 	if((unique_pml4[pml4_index] & 0x1) == 0){
 		create_pml_entry(pml4_index, unique_pml4, 0x3);

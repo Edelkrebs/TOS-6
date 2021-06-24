@@ -19,6 +19,7 @@
 #include <pic.h>
 #include <cpuid.h>
 #include <cpu/cpu_info.h>
+#include <mm/vmm.h>
 #include <mutex.h>
 
 #include <stivale2.h>
@@ -85,7 +86,7 @@ void init_apic(struct stivale2_struct* stivale2_struct){
 			}case 1:{
 				IOAPIC_info ioapic_info = {
 					.global_sys_interrupt_base = ((MADT_ENTRY_TYPE_1*)(madt_bytes + index))->global_sys_interrupt_base,
-					.ioapic_addr = ((MADT_ENTRY_TYPE_1*)(madt_bytes + index))->ioapic_addr,
+					.ioapic_addr = ((MADT_ENTRY_TYPE_1*)(madt_bytes + index))->ioapic_addr + VM_OFFSET,
 					.ioapic_id = ((MADT_ENTRY_TYPE_1*)(madt_bytes + index))->ioapic_id,
 				};
 				ioapics_info[ioapics_info_index] = ioapic_info;
@@ -119,7 +120,7 @@ void init_apic(struct stivale2_struct* stivale2_struct){
 		IRQ_set_mask(i);
 	}
 
-	lapic_addr = (void*)(rdmsr(MSR_IA32_APIC_BASE) & 0xFFFFF000);
+	lapic_addr = (void*)(rdmsr(MSR_IA32_APIC_BASE) & 0xFFFFF000) + VM_OFFSET;
 
 	host_processor_id = get_apic_id();
 }

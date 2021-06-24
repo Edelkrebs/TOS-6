@@ -27,15 +27,15 @@ uint64_t bitmap_size;
 uint64_t kernel_size;
 
 static void bitmap_setb(uint64_t index){
-	bitmap[index / 8] |= 1 << (index % 8);
+	((uint8_t*)bitmap + VM_OFFSET)[index / 8] |= 1 << (index % 8);
 }
 
 static void bitmap_clearb(uint64_t index){
-	bitmap[index / 8] &= ~(1 << (index % 8));
+	((uint8_t*)bitmap + VM_OFFSET)[index / 8] &= ~(1 << (index % 8));
 }
 
 __attribute__((unused))static uint64_t bitmap_getb(uint64_t index){
-	return !!(bitmap[index / 8] & (1 << (index % 8)));
+	return !!(((uint8_t*)bitmap + VM_OFFSET)[index / 8] & (1 << (index % 8)));
 }
 
 static inline uint64_t round_up(uint64_t number, uint64_t alignment){
@@ -129,11 +129,11 @@ void* pmm_alloc(__attribute__((unused))uint64_t pages){
 }
 
 void* pmm_calloc(uint64_t pages){
-	void* result = pmm_alloc(pages);
+	void* result = pmm_alloc(pages) + VM_OFFSET;
 	for(uint64_t i = 0; i < pages * PMM_PAGE_SIZE; i++){
-		((uint8_t*)result + VM_OFFSET)[i] = 0;
+		((uint8_t*)result)[i] = 0;
 	}
-	return result;
+	return result - VM_OFFSET;
 }
 
 void pmm_free(void* paddr, uint64_t pages){

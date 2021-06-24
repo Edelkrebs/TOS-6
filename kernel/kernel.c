@@ -50,7 +50,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	init_timer();
 	log("Initializing global timer\n", INFO);
 
-
 	registerGDTentry(0, 0, 0, 0);	
 	registerGDTentry(1, 0, 0, 0b1001101000100000);	
 	registerGDTentry(2, 0, 0, 0b1001001000000000);	
@@ -83,19 +82,16 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	log("Mapping pages\n", SUCCESS);
 	activate_paging();
 	log("Loading CR3\n", SUCCESS);
-/*
+
 	keyboard_init();
 	log("Initializing Keyboard driver\n", SUCCESS);
-
-	kmalloc(02020);
-	//kfree(ptr);
 
 	init_pci();
 	log("Initializing PCI\n", SUCCESS);
 
 	init_ahci();
 	log("Initializing AHCI driver\n", SUCCESS);
-
+/*
 	init_gpt();
 	log("Initializing the GPT\n", SUCCESS);
 

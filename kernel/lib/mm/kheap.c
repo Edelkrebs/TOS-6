@@ -49,23 +49,22 @@ slab* slab_stack = NULL;
 
 void slab_create(size_t size){
     if(slab_stack == NULL){
-        slab_stack = (slab*)pmm_calloc(1);
+        slab_stack = (slab*)(pmm_calloc(1) + VM_OFFSET);
         slab_stack->allocated_objects = 0;
-    panic("EEEE");
-        slab_stack->bitmap = (uint8_t*)pmm_calloc(1);
+        slab_stack->bitmap = (uint8_t*)(pmm_calloc(1) + VM_OFFSET);
         slab_stack->size = size;
-        slab_stack->start = pmm_calloc(page_align(size * SLAB_OBJECT_COUNT) / PMM_PAGE_SIZE);
+        slab_stack->start = pmm_calloc(page_align(size * SLAB_OBJECT_COUNT) / PMM_PAGE_SIZE) + VM_OFFSET;
         slab_stack->next = NULL;
         return;
     }else{
         slab* slab;
         for(slab = slab_stack; slab->next; slab = slab->next);
-        slab->next = pmm_calloc(1);
+        slab->next = pmm_calloc(1) + VM_OFFSET;
         slab = slab->next;
         slab->allocated_objects = 0;
-        slab->bitmap = (uint8_t*)pmm_calloc(1);
+        slab->bitmap = (uint8_t*)(pmm_calloc(1) + VM_OFFSET);
         slab->size = size;
-        slab->start = pmm_calloc(page_align(size * SLAB_OBJECT_COUNT) / PMM_PAGE_SIZE);
+        slab->start = pmm_calloc(page_align(size * SLAB_OBJECT_COUNT) / PMM_PAGE_SIZE) + VM_OFFSET;
         slab->next = NULL;
         return;
     }
