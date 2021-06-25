@@ -144,12 +144,13 @@ void send_ahci_command(uint8_t port, volatile HBA_command_table* command_table, 
         panic("Couldn't find free command slot!");
     }
 
-    volatile HBA_command_list* command_list = (volatile HBA_command_list*)((uint64_t)(hba_memory_space->port_registers[port].command_list_base | ((uint64_t)hba_memory_space->port_registers[port].command_list_base_upper << 32)));
+    volatile HBA_command_list* command_list = (volatile HBA_command_list*)(((uint64_t)(hba_memory_space->port_registers[port].command_list_base | ((uint64_t)hba_memory_space->port_registers[port].command_list_base_upper << 32))) + VM_OFFSET);
     
+    uint64_t phys_cmd_table = ((uint64_t)command_table) - VM_OFFSET;
     command_list->command_headers[slot].flags = flags | (sizeof(Register_H2D_FIS) / sizeof(uint32_t)) | 0x400;
     command_list->command_headers[slot].physical_region_descriptor_table_length = (uint16_t)((count - 1) >> 4) + 1;
-    command_list->command_headers[slot].command_table_descriptor_base = (uint32_t)((uint64_t)command_table);
-    command_list->command_headers[slot].command_table_descriptor_base_upper = (uint64_t)command_table >> 32;
+    command_list->command_headers[slot].command_table_descriptor_base = (uint32_t)((uint64_t)phys_cmd_table);
+    command_list->command_headers[slot].command_table_descriptor_base_upper = (uint64_t)phys_cmd_table >> 32;
 
     for (int i = 0; i < command_list->command_headers[slot].physical_region_descriptor_table_length - 1; i++)
 	{
@@ -170,7 +171,7 @@ void send_ahci_command(uint8_t port, volatile HBA_command_table* command_table, 
 }
 
 void ahci_write(uint8_t port, uint64_t start_lba, uint16_t count, volatile uint16_t* data){
-    volatile HBA_command_table* command_table = (volatile HBA_command_table*)pmm_calloc(1);
+    volatile HBA_command_table* command_table = (volatile HBA_command_table*)(pmm_calloc(1) + VM_OFFSET);
 
     command_table->command_FIS.fis_type = 0x27;
     command_table->command_FIS.info = SATA_FIS_C;
@@ -192,7 +193,7 @@ void ahci_write(uint8_t port, uint64_t start_lba, uint16_t count, volatile uint1
 }
 
 void ahci_read(uint8_t port, uint64_t start_lba, uint16_t count, volatile uint16_t* data){
-    volatile HBA_command_table* command_table = (volatile HBA_command_table*)pmm_calloc(1);
+    volatile HBA_command_table* command_table = (volatile HBA_command_table*)(pmm_calloc(1) + VM_OFFSET);
 
     command_table->command_FIS.fis_type = 0x27;
     command_table->command_FIS.info = SATA_FIS_C;
@@ -274,7 +275,7 @@ void init_ahci(){
         panic("Couldn't find AHCI controller!");
     }
     hba_ecm_base = (volatile PCIE_header_type_0*)get_ecm_address(ahci_device.bus, ahci_device.device, ahci_device.function);
-    hba_memory_space = (volatile HBA_memory_space*)((uint64_t)(((PCIE_header_type_0*)hba_ecm_base)->base_address_5) & 0xFFFFFFF0);
+    hba_memory_space = (volatile HBA_memory_space*)((uint64_t)((uint64_t)(((PCIE_header_type_0*)hba_ecm_base)->base_address_5) + VM_OFFSET) & (0xFFFFFFF0 | VM_OFFSET));
     ahci_msi_base = (volatile MSI_capability*)get_pcie_capability(0x5, hba_ecm_base);
 
     if((hba_memory_space->global_registers.host_capabilities & (1 << 31)) == 0){
@@ -296,6 +297,7 @@ void init_ahci(){
     /*  _____________
     |_TEST CODE_|
     */volatile uint16_t* data = (volatile uint16_t*)kmalloc(512);
+    printhexln((uint64_t)data);
     for(uint64_t i = 0; i < 256; i++){
         data[i] = 0xFFFF;
     }

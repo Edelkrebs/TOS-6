@@ -104,7 +104,7 @@ void setup_msi_capab(volatile MSI_capability* msi_capab, uint8_t vector, uint32_
     msi_capab->message_control |= 1;
 }
 
-__attribute__((unused))static uint16_t search_bus(__attribute__((unused))uint8_t bus, __attribute__((unused))uint8_t class, __attribute__((unused))uint8_t subclass, __attribute__((unused))uint8_t progif){
+static uint16_t search_bus(uint8_t bus, uint8_t class, uint8_t subclass, uint8_t progif){
     
     for(uint8_t device = 0; device < 32; device++){
         if(get_vendor_id(get_ecm_address(bus, device, 0)) == 0xFFFF) continue;
@@ -126,11 +126,11 @@ __attribute__((unused))static uint16_t search_bus(__attribute__((unused))uint8_t
     return UINT16_MAX;
 }
 
-PCIE_device_struct get_pcie_device(__attribute__((unused))uint8_t class, __attribute__((unused))uint8_t subclass, __attribute__((unused))uint8_t progif){
+PCIE_device_struct get_pcie_device(uint8_t class, uint8_t subclass, uint8_t progif){
     PCIE_device_struct device_struct = {.bus = 0, .device = 0, .ecma = 0, .function = 0, .segment_group = 0};
     for(uint64_t i = 0; i < ecm_info_struct_count; i++){
         for(uint64_t curr_bus = ecm_info_structs[i].start_pci_bus_number; curr_bus < ecm_info_structs[i].end_pci_bus_number; curr_bus++){
-            __attribute__((unused))uint32_t result = search_bus(curr_bus, class, subclass, progif);
+            uint32_t result = search_bus(curr_bus, class, subclass, progif);
             if(result != UINT16_MAX){
                 device_struct.bus = curr_bus;
                 device_struct.device = (uint8_t)result;

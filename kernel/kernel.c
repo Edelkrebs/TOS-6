@@ -61,8 +61,6 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	populate_bitmap();
 	log("Populating bitmap\n", SUCCESS);	
 
-	printhexln(*ticks_since_boot);
-
 	initIDT();
 	log("Initializing IDT\n", SUCCESS);
 	loadIDT();

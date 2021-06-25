@@ -91,21 +91,22 @@ void* slab_alloc(uint64_t size){
     if(slab_stack == NULL){
         slab_create(size);
     }
-
-    for(slab* slab = slab_stack; slab; slab = slab->next){
-        if(slab->size == size && slab->allocated_objects < SLAB_OBJECT_COUNT){
-            for(uint32_t i = 0; i < SLAB_OBJECT_COUNT; i++){
-                if(!bitmap_getb(slab->bitmap, i)){
-                    bitmap_setb(slab->bitmap, i);
-                    slab->allocated_objects++;
-                    return slab->start + i * slab->size;
+    while(1){
+        for(slab* slab = slab_stack; slab; slab = slab->next){
+            if(slab->size == size && slab->allocated_objects < SLAB_OBJECT_COUNT){
+                for(uint32_t i = 0; i < SLAB_OBJECT_COUNT; i++){
+                    if(!bitmap_getb(slab->bitmap, i)){
+                        bitmap_setb(slab->bitmap, i);
+                        slab->allocated_objects++;
+                        return slab->start + i * slab->size;
+                    }
                 }
             }
         }
+        slab_create(size);
+        slab_alloc(size);
     }
 
-    slab_create(size);
-    slab_alloc(size);
     return NULL;
 }
 
