@@ -151,18 +151,19 @@ void send_ahci_command(uint8_t port, volatile HBA_command_table* command_table, 
     command_list->command_headers[slot].physical_region_descriptor_table_length = (uint16_t)((count - 1) >> 4) + 1;
     command_list->command_headers[slot].command_table_descriptor_base = (uint32_t)((uint64_t)phys_cmd_table);
     command_list->command_headers[slot].command_table_descriptor_base_upper = (uint64_t)phys_cmd_table >> 32;
-
+    
+    uint64_t phys_data = ((uint64_t)data) - VM_OFFSET;
     for (int i = 0; i < command_list->command_headers[slot].physical_region_descriptor_table_length - 1; i++)
 	{
-		command_table->prdt[i].data_base = (uint32_t)((uint64_t)data);
-        command_table->prdt[i].data_upper = (uint64_t)((uint64_t)data >> 32);
+		command_table->prdt[i].data_base = (uint32_t)(phys_data);
+        command_table->prdt[i].data_upper = (uint64_t)(phys_data >> 32);
 		command_table->prdt[i].byte_count_interrupt_on_complete = (0x1FFF) | HBA_Interrupt_On_Complete;
 		data += 0x1000;
 		count -= 0x10;	
 	}
     
-    command_table->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].data_base = (uint32_t)((uint64_t)data);
-    command_table->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].data_upper = (uint64_t)data >> 32;
+    command_table->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].data_base = (uint32_t)(phys_data);
+    command_table->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].data_upper = (uint64_t)phys_data >> 32;
 	command_table->prdt[command_list->command_headers[slot].physical_region_descriptor_table_length - 1].byte_count_interrupt_on_complete = (count * 512 - 1) | HBA_Interrupt_On_Complete;
 
     hba_memory_space->port_registers[port].command_issue |= 1 << slot;
@@ -296,12 +297,12 @@ void init_ahci(){
 
     /*  _____________
     |_TEST CODE_|
-    */volatile uint16_t* data = (volatile uint16_t*)kmalloc(512);
+    volatile uint16_t* data = (volatile uint16_t*)kmalloc(512);
     printhexln((uint64_t)data);
     for(uint64_t i = 0; i < 256; i++){
         data[i] = 0xFFFF;
     }
-    ahci_read(primary_sata_device, 0, 1, data);
+    ahci_write(primary_sata_device, 0, 1, data);
     printhexln(data[255]);
-    /**/
+    */
 }

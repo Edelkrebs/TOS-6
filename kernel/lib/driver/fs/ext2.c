@@ -16,6 +16,24 @@ uint32_t ext2_fragment_size;
 uint32_t ext2_inode_size;
 uint64_t ext2_block_group_count;
 
+Ext2_Directory* ext2_get_directory_entry(Ext2_Directory* dir, Ext2_Inode* inode, uint32_t index){
+    uint32_t hard_links_count = inode->hard_links_count + 1;
+    if(index > hard_links_count){
+        panic("Trying to access non-existent directory entry!");
+    }
+
+    for(uint64_t i = 0; i < index; i++){
+        dir = (Ext2_Directory*)((uint64_t)dir + dir->size);
+    }
+    return dir;
+}
+
+Ext2_Directory* ext2_get_directory_from_inode(Ext2_Inode* inode){
+    volatile uint16_t* dir = (volatile uint16_t*)kmalloc(ext2_block_size);
+    ext2_read_block(inode->direct_block_pointers[0], dir);
+    return (Ext2_Directory*)dir;
+}
+
 static inline uint64_t round_up(uint64_t number, uint64_t alignment){
 	return number % alignment == 0 ? number : (number + (alignment - number % alignment));
 }
@@ -86,16 +104,16 @@ void ext2_get_inode_from_path(char* path, Ext2_Inode* data){
 }
 
 void init_ext2(){
+    volatile uint16_t* temp_data = (volatile uint16_t*)kmalloc(0x400);
     for(uint64_t i = 0; i < MAX_PARTITION_TABLE_ENTRIES; i++){
-        volatile uint16_t* temp_data = (volatile uint16_t*)kmalloc(0x400);
-        ahci_read(primary_sata_device, ((GPT_partition_entry*)(gpt_partition_entries + gpt_header->partition_entry_size * i))->start_lba + 2, 2, temp_data);
+        ahci_read(primary_sata_device, gpt_partition_entries[i].start_lba + 2, 2, temp_data);
         if(((Ext2_Superblock*)temp_data)->signature == 0xef53){
             ext2_superblock_lba = ((GPT_partition_entry*)(gpt_partition_entries + gpt_header->partition_entry_size * i))->start_lba + 2;
             ext2_superblock = ((Ext2_Superblock*)temp_data);
             break;
         }
-        kfree((void*)temp_data);
     }
+    kfree((void*)temp_data);
     
     ext2_inode_size = 0x80;
     ext2_block_size = 0x400 << ext2_superblock->block_size;
@@ -122,10 +140,4 @@ void init_ext2(){
     if(ext2_superblock->version_major >= 1){
         ext2_inode_size = ext2_superblock->extended_fields.inode_size;
     }
-
-    Ext2_Inode* inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
-    ext2_read_inode(2, inode);
-    volatile uint16_t* dir_raw = (volatile uint16_t*)kmalloc(ext2_block_size);
-    ext2_read_block(inode->direct_block_pointers[0], dir_raw);
-    //Ext2_Directory* dir = (Ext2_Directory*)dir_raw;
 }

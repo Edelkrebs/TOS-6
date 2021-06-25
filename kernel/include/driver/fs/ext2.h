@@ -114,6 +114,8 @@ extern uint32_t ext2_inode_size;
 extern uint32_t ext2_fragment_size;
 extern uint64_t ext2_block_group_count;
 
+Ext2_Directory* ext2_get_directory_entry(Ext2_Directory* dir, Ext2_Inode* inode, uint32_t index);
+Ext2_Directory* ext2_get_directory_from_inode(Ext2_Inode* inode);
 void ext2_read_block(uint32_t block, volatile uint16_t* data);
 void ext2_read_inode(uint32_t inode, Ext2_Inode* data);
 void ext2_get_inode_from_path(char* path, Ext2_Inode* data);

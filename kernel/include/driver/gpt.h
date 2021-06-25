@@ -4,7 +4,7 @@
 #include <driver/ahci/ahci.h>
 #include <stdint.h>
 
-#define MAX_PARTITION_TABLE_ENTRIES 0xC8
+#define MAX_PARTITION_TABLE_ENTRIES 0x10
 
 typedef struct{
     uint8_t signature[8];
@@ -24,7 +24,7 @@ typedef struct{
 } __attribute__((packed)) GPT_partition_table_header;
 
 typedef struct{
-    uint8_t guid[16];
+    uint64_t guid[2];
     uint8_t unique_guid[16];
     uint64_t start_lba;
     uint64_t end_lba;
@@ -33,7 +33,7 @@ typedef struct{
 } __attribute__((packed)) GPT_partition_entry;
 
 extern GPT_partition_table_header* gpt_header;
-extern uint8_t* gpt_partition_entries;
+extern GPT_partition_entry* gpt_partition_entries;
 
 uint8_t init_gpt();
 
