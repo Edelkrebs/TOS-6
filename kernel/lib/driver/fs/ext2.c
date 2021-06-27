@@ -18,6 +18,11 @@ uint64_t ext2_block_group_count;
 
 Ext2_Directory* ext2_get_directory_entry(Ext2_Directory* dir, Ext2_Inode* inode, uint32_t index){
     uint32_t hard_links_count = inode->hard_links_count + 1;
+
+    if(!(inode->type_permission & 0x4000)){
+        panic("Trying to get Ext2 Directory entry from non-directory Inode!");
+    }
+
     if(index > hard_links_count){
         panic("Trying to access non-existent directory entry!");
     }

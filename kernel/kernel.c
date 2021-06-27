@@ -97,17 +97,8 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 	log("Initializing ext2 file system\n", SUCCESS);
 	//init_smp(stivale2_struct);
 
-	/*Ext2_Inode* inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
+	Ext2_Inode* inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
 	ext2_get_inode_from_path("boot", inode);
-	Ext2_Directory* dir = ext2_get_directory_from_inode(inode);
-	dir = ext2_get_directory_entry(dir, inode, 3);
-	putch(dir->name[0]);
-	putch(dir->name[1]);
-	putch(dir->name[2]);
-	putch(dir->name[3]);
-	putch(dir->name[4]);
-	putch(dir->name[5]);
-	putch(dir->name[6]);*/
 
 	while(1) asm("hlt");
 
