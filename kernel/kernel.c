@@ -99,6 +99,7 @@ void kmain(struct stivale2_struct *stivale2_struct) {
 
 	Ext2_Inode* inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
 	ext2_get_inode_from_path("boot", inode);
+	printhexln(inode->hard_links_count);
 
 	while(1) asm("hlt");
 

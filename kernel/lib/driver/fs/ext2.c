@@ -16,6 +16,11 @@ uint32_t ext2_fragment_size;
 uint32_t ext2_inode_size;
 uint64_t ext2_block_group_count;
 
+
+static inline uint64_t round_up(uint64_t number, uint64_t alignment){
+	return number % alignment == 0 ? number : (number + (alignment - number % alignment));
+}
+
 Ext2_Directory* ext2_get_directory_entry(Ext2_Directory* dir, Ext2_Inode* inode, uint32_t index){
     uint32_t hard_links_count = inode->hard_links_count + 1;
 
@@ -28,19 +33,20 @@ Ext2_Directory* ext2_get_directory_entry(Ext2_Directory* dir, Ext2_Inode* inode,
     }
 
     for(uint64_t i = 0; i < index; i++){
+        if(dir->size == 0 || dir->inode == 0){
+            return 0;
+        }
         dir = (Ext2_Directory*)((uint64_t)dir + dir->size);
     }
     return dir;
 }
 
 Ext2_Directory* ext2_get_directory_from_inode(Ext2_Inode* inode){
-    volatile uint16_t* dir = (volatile uint16_t*)kmalloc(ext2_block_size);
-    ext2_read_block(inode->direct_block_pointers[0], dir);
+    volatile uint16_t* dir = (volatile uint16_t*)kmalloc(round_up(inode->sector_count, 8) * 0x200);
+    for(uint64_t i = 0; i < (round_up(inode->sector_count, 8) * 0x200) / ext2_block_size; i++){
+        ext2_read_block(inode->direct_block_pointers[i], dir + 0x200 * i);
+    }
     return (Ext2_Directory*)dir;
-}
-
-static inline uint64_t round_up(uint64_t number, uint64_t alignment){
-	return number % alignment == 0 ? number : (number + (alignment - number % alignment));
 }
 
 void ext2_read_block(uint32_t block, volatile uint16_t* data){
