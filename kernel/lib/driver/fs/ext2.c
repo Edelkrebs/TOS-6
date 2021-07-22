@@ -19,7 +19,7 @@ uint64_t ext2_block_group_count;
 
 static inline uint64_t round_up(uint64_t number, uint64_t alignment){
 	return number % alignment == 0 ? number : (number + (alignment - number % alignment));
-}
+}  
 
 Ext2_Directory* ext2_get_directory_entry(Ext2_Directory* dir, Ext2_Inode* inode, uint32_t index){
     uint32_t hard_links_count = inode->hard_links_count + 1;
@@ -33,8 +33,12 @@ Ext2_Directory* ext2_get_directory_entry(Ext2_Directory* dir, Ext2_Inode* inode,
     }
 
     for(uint64_t i = 0; i < index; i++){
-        if(dir->size == 0 || dir->inode == 0){
-            return 0;
+        if(dir->inode == 0){
+            if(dir->size > 0){
+                dir = (Ext2_Directory*)((uint64_t)dir + dir->size);
+            }else{
+                return 0;
+            }
         }
         dir = (Ext2_Directory*)((uint64_t)dir + dir->size);
     }
@@ -59,9 +63,8 @@ void ext2_read_inode(uint32_t inode, Ext2_Inode* data){
     *data = *((Ext2_Inode*)((uint8_t*)inode_table + (inode - 1) * ext2_inode_size));
 }
 
-void ext2_get_inode_from_path(char* path, Ext2_Inode* data){
+Ext2_Directory* ext2_get_dir_entry_from_path(char* path){
     char* name_stub = (char*)kmalloc(0x100);
-    kfree(name_stub);
     Ext2_Inode* curr_inode = (Ext2_Inode*)kmalloc(ext2_inode_size);
     uint8_t name_stub_offset = 0;
     uint32_t path_len = strlen(path);
@@ -69,7 +72,7 @@ void ext2_get_inode_from_path(char* path, Ext2_Inode* data){
     uint8_t slash_count = 0;
     ext2_read_inode(2, curr_inode);
     for(uint8_t i = 0; i <= path_len; i++){
-        if(path[i] == '/'){
+        if(path[i] == '/' || path[i] == '\0'){
             slash_count++;
             name_stub[i - name_stub_offset] = '\0';
             name_stub_offset = i + 1;
@@ -78,7 +81,16 @@ void ext2_get_inode_from_path(char* path, Ext2_Inode* data){
             Ext2_Directory* curr_dir_entry = (Ext2_Directory*)temp_data;
             for(uint16_t j = 0; j <= curr_inode->hard_links_count; j++){
                 if(!memcmp(curr_dir_entry->name, name_stub, curr_dir_entry->name_length_lower)){
-                    if(curr_dir_entry->feature_flags != Directory) panic("Trying to treat file as directory!");
+                    if(curr_dir_entry->feature_flags != Directory){
+                        if(path[i] == '\0'){
+                            kfree(name_stub);
+                            kfree(temp_data);
+                            kfree(curr_inode);
+                            return curr_dir_entry;
+                        }else{
+                            panic("Trying to treat file as directory!");
+                        }
+                    }
                     ext2_read_inode(curr_dir_entry->inode, curr_inode);
                     break;
                 }
@@ -94,24 +106,19 @@ void ext2_get_inode_from_path(char* path, Ext2_Inode* data){
     Ext2_Directory* curr_dir_entry = (Ext2_Directory*)temp_data;
 
     for(uint16_t j = 0; j <= curr_inode->hard_links_count; j++){
-        if(slash_count != 0){
-            if(!memcmp(curr_dir_entry->name, name_stub, curr_dir_entry->name_length_lower)){
-                ext2_read_inode(curr_dir_entry->inode, curr_inode);
-                *data = *curr_inode;
-                return;
-            }
-        }else{
-            if(!memcmp(curr_dir_entry->name, path, curr_dir_entry->name_length_lower)){
-                ext2_read_inode(curr_dir_entry->inode, curr_inode);
-                *data = *curr_inode;
-                return;
-            }
+        if(!memcmp(curr_dir_entry->name, path, curr_dir_entry->name_length_lower)){
+            Ext2_Directory* dir = (Ext2_Directory*)kmalloc(curr_dir_entry->size);
+            *dir = *curr_dir_entry;
+            kfree(name_stub);
+            kfree(temp_data);
+            kfree(curr_inode);
+            return dir;
         }
+        
         curr_dir_entry = (Ext2_Directory*)(((uint8_t*)curr_dir_entry) + curr_dir_entry->size);
     }
-    //kfree(curr_inode);
     panic("Couldn't find specified path");
-
+    return 0;
 }
 
 void init_ext2(){

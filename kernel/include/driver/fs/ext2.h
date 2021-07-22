@@ -1,6 +1,7 @@
 #ifndef __EXT_2_H
 #define __EXT_2_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 typedef enum{
@@ -118,7 +119,8 @@ Ext2_Directory* ext2_get_directory_entry(Ext2_Directory* dir, Ext2_Inode* inode,
 Ext2_Directory* ext2_get_directory_from_inode(Ext2_Inode* inode);
 void ext2_read_block(uint32_t block, volatile uint16_t* data);
 void ext2_read_inode(uint32_t inode, Ext2_Inode* data);
-void ext2_get_inode_from_path(char* path, Ext2_Inode* data);
+Ext2_Directory* ext2_get_dir_entry_from_path(char* path);
+uint8_t* ext2_read_file_from_path(char* path, Ext2_Inode* data, size_t seek);
 void init_ext2();
 
 #endif
